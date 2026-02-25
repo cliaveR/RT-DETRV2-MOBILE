@@ -3,6 +3,7 @@ package com.example.thesis.view.bottomNavigationBar.parts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
@@ -29,7 +30,7 @@ fun BottomNavigationBar() {
             onClick = { selectedItem = 1 },
             icon = {
                 Icon(
-                    imageVector = Icons.Filled.Home,
+                    imageVector = Icons.Outlined.Home,
                     contentDescription = "Home"
                 )
             },

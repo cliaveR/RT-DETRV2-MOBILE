@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -74,7 +75,7 @@ fun MenuCard(
                 }
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Notifications,
+                    imageVector = Icons.Outlined.Notifications,
                     contentDescription = "Notifications",
                     tint = Color.Black,
                     modifier = Modifier.size(26.dp)
