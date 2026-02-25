@@ -8,17 +8,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.thesis.view.middleContent.MiddleContent
+import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
 import com.example.thesis.view.topContent.TopContent
 
 @Composable
-fun MainScaffolding() {
-
-    Scaffold(
-        bottomBar = {
-            BottomAppBar {
-                Text(text = "show more")
-            }
+fun MainScaffolding(){
+    Scaffold (bottomBar = {
+        BottomAppBar {
+            BottomNavigationBar()
+            Text(
+                text = "show more"
+            )
         }
     ) { innerPadding ->
 
