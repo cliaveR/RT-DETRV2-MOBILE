@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +40,6 @@ fun CameraCard(){
     Card(modifier = Modifier
         .padding(16.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         )
@@ -88,45 +88,40 @@ fun CameraCard(){
 }
 
 @Composable
-fun CameraButton (){
+fun CameraButton(onClick: () -> Unit = {}) {
     Box(
+        modifier = Modifier
+            .size(84.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.LightGray, RoundedCornerShape(12.dp))
+            .clickable { onClick() }, // just like ProjectCard
         contentAlignment = Alignment.Center
-    ){
-        Box(
-            modifier = Modifier
-                .size(84.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background((Color.LightGray)),
-            contentAlignment = Alignment.Center
-        ){
-            Icon(
-                imageVector = Icons.Outlined.PhotoCamera,
-                contentDescription = "Upload photo",
-                tint = Color.Black,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.PhotoCamera,
+            contentDescription = "Camera",
+            tint = Color.Black,
+            modifier = Modifier.size(32.dp)
+        )
     }
 }
+
 @Composable
-fun UploadButton (){
+fun UploadButton(onClick: () -> Unit = {}) {
     Box(
+        modifier = Modifier
+            .size(84.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.LightGray, RoundedCornerShape(12.dp))
+            .clickable { onClick() }, // just like ProjectCard
         contentAlignment = Alignment.Center
-    ){
-        Box(
-            modifier = Modifier
-                .size(84.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background((Color.LightGray)),
-            contentAlignment = Alignment.Center
-        ){
-            Icon(
-                imageVector = Icons.Outlined.FileUpload,
-                contentDescription = "Upload photo",
-                tint = Color.Black,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.FileUpload,
+            contentDescription = "Upload",
+            tint = Color.Black,
+            modifier = Modifier.size(32.dp)
+        )
     }
 }
 
