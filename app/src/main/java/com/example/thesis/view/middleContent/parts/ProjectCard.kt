@@ -13,9 +13,11 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.time.format.DateTimeFormatter
 import com.example.thesis.model.middleContent.Project
+
 
 @Composable
 fun ProjectCard(
