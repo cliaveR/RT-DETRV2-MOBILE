@@ -13,12 +13,30 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.time.format.DateTimeFormatter
 import com.example.thesis.model.middleContent.Project
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewProjectCard() {
+    // Sample project
+    val sampleProject = Project(
+        id="1",
+        name = "My Sample Project",
+        lastOpened = java.time.LocalDateTime.now() // just for demo
+    )
 
+    // Call the composable with sample data
+    ProjectCard(
+        project = sampleProject,
+        onClick = {},
+        onEditClick = {},
+        onDeleteClick = {}
+    )
+}
 @Composable
 fun ProjectCard(
     project: Project,
@@ -37,7 +55,10 @@ fun ProjectCard(
             .padding(vertical = 8.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        elevation = CardDefaults.cardElevation(6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
     ) {
 
         Row(
@@ -49,7 +70,7 @@ fun ProjectCard(
                 modifier = Modifier
                     .size(60.dp)
                     .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        color=Color.LightGray,
                         RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
