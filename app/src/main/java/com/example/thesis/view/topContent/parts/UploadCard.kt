@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -91,13 +94,13 @@ fun CameraButton (){
     ){
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(84.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background((Color.LightGray)),
             contentAlignment = Alignment.Center
         ){
             Icon(
-                imageVector = Icons.Filled.PhotoCamera,
+                imageVector = Icons.Outlined.PhotoCamera,
                 contentDescription = "Upload photo",
                 tint = Color.Black,
                 modifier = Modifier.size(32.dp)
@@ -112,13 +115,13 @@ fun UploadButton (){
     ){
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(84.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background((Color.LightGray)),
             contentAlignment = Alignment.Center
         ){
             Icon(
-                imageVector = Icons.Filled.PhotoCamera,
+                imageVector = Icons.Outlined.FileUpload,
                 contentDescription = "Upload photo",
                 tint = Color.Black,
                 modifier = Modifier.size(32.dp)
