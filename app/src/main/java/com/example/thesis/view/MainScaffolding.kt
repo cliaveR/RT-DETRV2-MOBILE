@@ -13,12 +13,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
 import com.example.thesis.view.topContent.TopContent
 
 @Composable
 fun MainScaffolding(){
     Scaffold (bottomBar = {
         BottomAppBar {
+            BottomNavigationBar()
             Text(
                 text = "show more"
             )
