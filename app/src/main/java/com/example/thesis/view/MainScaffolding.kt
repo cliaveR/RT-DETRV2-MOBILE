@@ -14,6 +14,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
+
+
+import com.example.thesis.view.middleContent.MiddleContent
 import com.example.thesis.view.topContent.TopContent
 
 @Composable
@@ -36,6 +39,9 @@ fun MainScaffolding(){
             )
             {
                 TopContent()
+
+                MiddleContent()
+
             }
         }
 }
