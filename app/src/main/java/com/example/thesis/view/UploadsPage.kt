@@ -8,14 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
-import com.example.thesis.view.topBarContent.parts.UploadsTopBarCard
+import com.example.thesis.view.middleContent.parts.BulkUploadCard
+import com.example.thesis.view.topBarContent.parts.NewPageTopBarCard
 
 @Preview
 @Composable
-fun UploadsPage(){
+fun NewPagePage(){
     Scaffold (
         topBar = {
-            UploadsTopBarCard()
+            NewPageTopBarCard()
         },
         bottomBar = {
             BottomNavigationBar()
@@ -29,7 +30,7 @@ fun UploadsPage(){
                 .fillMaxSize()
         )
         {
-            // Put here the upload images section
+            BulkUploadCard()
         }
     }
 }
