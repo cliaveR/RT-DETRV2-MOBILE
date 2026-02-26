@@ -38,13 +38,14 @@ fun BulkUploadCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .padding(horizontal = 13.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Checkbox(
                 checked = uploads.isNotEmpty() && selectedImages.size == uploads.size,
-                onCheckedChange = { uploadViewModel.toggleSelectAll(it) }
+                onCheckedChange = { uploadViewModel.toggleSelectAll(it) },
+                modifier = Modifier.padding(end = 8.dp)
             )
 
             Text(

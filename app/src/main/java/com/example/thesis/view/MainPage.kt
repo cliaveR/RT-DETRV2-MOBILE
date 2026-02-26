@@ -26,13 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun MainPage(){
 
     Scaffold (
-        topBar = {
-            Box(
-                modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())
-            ) {
-                TopBarContent()
-            }
-        },
+
         bottomBar = {
             BottomNavigationBar()
     }){

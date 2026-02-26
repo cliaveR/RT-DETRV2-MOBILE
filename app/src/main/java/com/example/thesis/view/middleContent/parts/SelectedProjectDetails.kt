@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thesis.viewmodel.middleContent.SelectedProjectViewModel
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun SelectedProjectDetails(
     viewModel: SelectedProjectViewModel = viewModel()
@@ -33,13 +33,15 @@ fun SelectedProjectDetails(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .padding(horizontal = 13.dp, vertical = 8.dp),
+
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Checkbox(
                 checked = images.isNotEmpty() && selectedImages.size == images.size,
-                onCheckedChange = { viewModel.toggleSelectAll(it) }
+                onCheckedChange = { viewModel.toggleSelectAll(it) },
+
             )
 
             Text(

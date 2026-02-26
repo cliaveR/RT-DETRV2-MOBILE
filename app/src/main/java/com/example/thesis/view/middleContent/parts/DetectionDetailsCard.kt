@@ -79,6 +79,29 @@ fun DetectionDetailsCard() {
 
             Spacer(modifier = Modifier.height(24.dp))
             CoordinateTable()
+
+            // --- Confirm Button Section ---
+            Spacer(modifier = Modifier.height(32.dp)) // Extra space before the button
+
+            androidx.compose.material3.Button(
+                onClick = {
+                    /* TODO: Handle confirmation logic here */
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF000000), // A professional blue, or use MaterialTheme.colorScheme.primary
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "Confirm Details",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
@@ -246,7 +269,7 @@ fun CoordinateInputField(
 
 @Composable
 fun UploadResultTitleText(){
-    Column (modifier = Modifier.padding(16.dp)){
+    Column (modifier = Modifier.padding(bottom = 12.dp)){
         Text(
             text = "Road Damage Details",
             fontSize = 18.sp,
