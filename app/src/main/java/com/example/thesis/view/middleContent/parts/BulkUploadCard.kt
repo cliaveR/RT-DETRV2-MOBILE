@@ -5,7 +5,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.*
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,15 +16,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.thesis.viewmodel.middleContent.SelectedProjectViewModel
+import com.example.thesis.viewmodel.middleContent.SelectedUploadViewModel
 
 @Preview(showBackground = true)
 @Composable
-fun SelectedProjectDetails(
-    viewModel: SelectedProjectViewModel = viewModel()
+fun BulkUploadCard(
+    uploadViewModel: SelectedUploadViewModel = viewModel()
 ) {
-    val images by viewModel.images.collectAsState()
-    val selectedImages by viewModel.selectedImages.collectAsState()
+
+    val uploads by uploadViewModel.uploads.collectAsState()
+    val selectedImages by uploadViewModel.selectedUploads.collectAsState()
+
 
     Column(
         modifier = Modifier
@@ -34,14 +39,13 @@ fun SelectedProjectDetails(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 13.dp, vertical = 8.dp),
-
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Checkbox(
-                checked = images.isNotEmpty() && selectedImages.size == images.size,
-                onCheckedChange = { viewModel.toggleSelectAll(it) },
-
+                checked = uploads.isNotEmpty() && selectedImages.size == uploads.size,
+                onCheckedChange = { uploadViewModel.toggleSelectAll(it) },
+                modifier = Modifier.padding(end = 8.dp)
             )
 
             Text(
@@ -51,7 +55,7 @@ fun SelectedProjectDetails(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            IconButton(onClick = { viewModel.onFilterClick() }) {
+            IconButton(onClick = { uploadViewModel.onFilterClick() }) {
                 Icon(
                     imageVector = Icons.Outlined.Tune,
                     contentDescription = "Filter"
@@ -60,18 +64,18 @@ fun SelectedProjectDetails(
         }
 
         LazyColumn {
-            items(images, key = { it.id }) { image ->
-                SelectedProjectCard(
-                    image = image,
-                    isSelected = selectedImages.contains(image.id),
+            items(uploads, key = { it.id }) { upload ->
+                UploadedImageCard(
+                    upload = upload,
+                    isSelected = selectedImages.contains(upload.id),
                     onSelectChange = {
-                        viewModel.toggleImageSelection(image.id)
+                        uploadViewModel.toggleUploadSelection(upload.id)
                     },
                     onEditClick = {
-                        viewModel.editImage(image.id)
+                        uploadViewModel.editImage(upload.id)
                     },
                     onDeleteClick = {
-                        viewModel.deleteImage(image.id)
+                        uploadViewModel.deleteUpload(upload.id)
                     }
                 )
             }

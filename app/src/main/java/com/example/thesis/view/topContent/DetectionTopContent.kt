@@ -1,10 +1,8 @@
 package com.example.thesis.view.topContent
-
 import androidx.compose.runtime.Composable
-import com.example.thesis.view.topContent.parts.CameraAndUploadCard
 import com.example.thesis.view.topContent.parts.DetectionCard
 
 @Composable
-fun TopContent (){
-    CameraAndUploadCard()
+fun DetectionTopContent (){
+    DetectionCard()
 }

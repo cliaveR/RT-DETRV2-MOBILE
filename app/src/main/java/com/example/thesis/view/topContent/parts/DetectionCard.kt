@@ -1,24 +1,24 @@
 package com.example.thesis.view.topContent.parts
 
+import coil.compose.AsyncImage
+import coil.size.Precision
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.PhotoCamera
-import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -27,15 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.request.ImageRequest
 
 @Preview
 @Composable
-fun CameraCard(){
+fun DetectionCard(){
 
     Card(modifier = Modifier
         .padding(16.dp),
@@ -45,7 +47,6 @@ fun CameraCard(){
         )
     )
     {
-        TittleText()
 
         Column (modifier = Modifier
             .padding(bottom = 24.dp)
@@ -53,7 +54,7 @@ fun CameraCard(){
             horizontalAlignment = Alignment.CenterHorizontally)
         {
             Spacer(modifier = Modifier.size(12.dp))
-
+            UploadTitleText()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -62,23 +63,12 @@ fun CameraCard(){
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CameraButton()
+                    ImageDisplayResult()
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Camera",
+                        text = "Detection Results",
                         fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    UploadButton()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Upload",
-                        fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color.Black
                     )
                 }
             }
@@ -86,53 +76,53 @@ fun CameraCard(){
 
     }
 }
-
 @Composable
-fun CameraButton(onClick: () -> Unit = {}) {
+fun ImageDisplayResult(
+    imageUri: Any? = null,
+    onClick: () -> Unit = {}
+) {
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
-            .size(84.dp)
+            .size(250.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.LightGray, RoundedCornerShape(12.dp))
-            .clickable { onClick() }, // just like ProjectCard
+            .background(Color.LightGray)
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = Icons.Outlined.PhotoCamera,
-            contentDescription = "Camera",
-            tint = Color.Black,
-            modifier = Modifier.size(32.dp)
-        )
+        if (imageUri != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(imageUri)
+                    .crossfade(true)
+                    // This limits the internal bitmap size to 512px regardless of source
+                    .size(512)
+                    .precision(Precision.EXACT)
+                    .build(),
+                contentDescription = "Detected Image",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Outlined.PhotoCamera,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = Color.DarkGray
+            )
+        }
     }
 }
 
 @Composable
-fun UploadButton(onClick: () -> Unit = {}) {
-    Box(
-        modifier = Modifier
-            .size(84.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.LightGray, RoundedCornerShape(12.dp))
-            .clickable { onClick() }, // just like ProjectCard
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.FileUpload,
-            contentDescription = "Upload",
-            tint = Color.Black,
-            modifier = Modifier.size(32.dp)
-        )
-    }
-}
-
-@Composable
-fun TittleText(){
+fun UploadTitleText(){
     Column (modifier = Modifier.padding(16.dp)){
         Text(
-            text = "Road Damage Detection",
+            text = "Upload Result",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Left,
             color = Color.Black,
             modifier = Modifier.fillMaxWidth()
         )

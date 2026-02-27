@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 
 @Preview
 @Composable
-fun UploadsTopBarCard(
+fun NewPageTopBarCard(
     onMenuClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     modifier: Modifier = Modifier
