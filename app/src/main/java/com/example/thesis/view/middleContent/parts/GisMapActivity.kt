@@ -6,10 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.arcgismaps.ApiKey
 import com.arcgismaps.ArcGISEnvironment
-import com.arcgismaps.httpcore.authentication.OAuthUserConfiguration
-import com.arcgismaps.toolkit.authentication.AuthenticatorState
-import com.arcgismaps.toolkit.authentication.DialogAuthenticator
-import com.example.thesis.view.middleContent.parts.GisMapTrial
+
 class GisMap : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
