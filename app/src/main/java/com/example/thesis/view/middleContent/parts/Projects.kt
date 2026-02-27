@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thesis.viewmodel.middleContent.ProjectViewModel
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun Projects(
     projectViewModel: ProjectViewModel = viewModel()

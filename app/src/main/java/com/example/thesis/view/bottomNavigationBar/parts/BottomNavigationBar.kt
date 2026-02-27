@@ -17,8 +17,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BottomNavigationBar() {
 
-    var selectedItem by remember { mutableStateOf(0) }
-
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp,         // removes gray tone
@@ -26,12 +24,13 @@ fun BottomNavigationBar() {
 
         // Home button (index 0)
         NavigationBarItem(
-            selected = selectedItem == 1,
-            onClick = { selectedItem = 1 },
+            selected = false,
+            onClick = {  },
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.Home,
-                    contentDescription = "Home"
+                    contentDescription = "Home",
+                    tint = Color.Black
                 )
             },
             label = { Text("Home") }
@@ -39,15 +38,16 @@ fun BottomNavigationBar() {
 
         // Map button (index 1)
         NavigationBarItem(
-            selected = selectedItem == 1,
-            onClick = { selectedItem = 1 },
+            selected = false,
+            onClick = { },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Map,
-                    contentDescription = "Map"
+                    contentDescription = "Map",
+                    tint = Color.Black
                 )
             },
-            label = { Text("Map") }
+            label = { Text("Map", color = Color.Black) }
         )
     }
 }
