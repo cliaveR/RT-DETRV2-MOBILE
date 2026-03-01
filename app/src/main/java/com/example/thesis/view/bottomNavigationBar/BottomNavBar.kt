@@ -4,6 +4,12 @@ import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
 
 
 @Composable
-fun BottomNavBar() {
-    BottomNavigationBar()
+fun BottomNavBar(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    BottomNavigationBar(
+        selectedTab = selectedTab,
+        onTabSelected = onTabSelected
+    )
 }

@@ -9,16 +9,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.thesis.ui.theme.ThesisTheme
-import com.example.thesis.view.ResultsPage
 import com.example.thesis.view.launchScreen.LaunchScreenView
 import kotlinx.coroutines.delay
-import com.example.thesis.R
 import com.example.thesis.view.MainPage
+import com.example.thesis.view.MapPage
+import com.example.thesis.view.ProjectPage
+import com.example.thesis.view.ResultsPage
 import com.example.thesis.view.UploadsPage
 import com.example.thesis.view.navigation.MainNavigationContainer
 
@@ -29,9 +31,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ThesisTheme {
-
                 MainAppNavigation()
-
             }
         }
     }
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun GreetingPreview() {
         ThesisTheme {
-            MainPage()
+            ProjectPage()
 
         }
     }
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainAppNavigation() {
     var showSplashScreen by remember { mutableStateOf(true) }
-
+    var selectedTab by remember { mutableIntStateOf(0) }
     LaunchedEffect(key1 = Unit) {
         delay(3000) // 3000ms = 3 seconds
         showSplashScreen = false
@@ -61,11 +61,20 @@ fun MainAppNavigation() {
     if (showSplashScreen) {
         LaunchScreenView()
     } else {
-        MainNavigationContainer { innerPadding ->
+        MainNavigationContainer(
+
+            selectedTab = selectedTab,
+            onTabSelected = { selectedTab = it }
+        ) { innerPadding ->
             Box(modifier = androidx.compose.ui.Modifier.padding(innerPadding)) {
-                MainPage()
+                when (selectedTab) {
+                    0 -> MainPage()
+                    1 -> MapPage()
+                    2 -> ResultsPage()
+                    3 -> UploadsPage()
+                    4 -> ProjectPage()
+                }
             }
         }
     }
 }
-
