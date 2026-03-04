@@ -40,6 +40,12 @@ android {
 }
 
 dependencies {
+
+    val camerax_version = "1.5.3"
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version") // ✅ this is what's missing
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -52,6 +58,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

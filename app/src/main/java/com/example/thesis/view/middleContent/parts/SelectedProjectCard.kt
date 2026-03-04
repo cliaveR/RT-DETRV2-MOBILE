@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.thesis.model.middleContent.ProjectImage
+import com.example.thesis.data.dataSource.ProjectImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

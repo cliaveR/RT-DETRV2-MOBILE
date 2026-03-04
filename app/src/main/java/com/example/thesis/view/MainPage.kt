@@ -11,10 +11,11 @@ import androidx.compose.ui.graphics.Color
 import com.example.thesis.view.middleContent.MiddleContent
 import com.example.thesis.view.topContent.TopContent
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 
 @Preview
 @Composable
-fun MainPage(){
+fun MainPage(navController: NavController){
 
     Scaffold (
        ){
@@ -30,7 +31,7 @@ fun MainPage(){
             )
             {
 
-                TopContent()
+                TopContent(navController = navController)
                 MiddleContent()
             }
         }

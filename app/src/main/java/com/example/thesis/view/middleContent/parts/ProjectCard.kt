@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.time.format.DateTimeFormatter
-import com.example.thesis.model.middleContent.Project
+import com.example.thesis.data.dataSource.Project
 
 @Preview(showBackground = true)
 @Composable

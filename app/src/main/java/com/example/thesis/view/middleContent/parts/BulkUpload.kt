@@ -1,13 +1,10 @@
 package com.example.thesis.view.middleContent.parts
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.*
@@ -16,14 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.thesis.model.middleContent.Project
-import com.example.thesis.model.middleContent.ProjectImage
-import com.example.thesis.model.middleContent.Upload
-import com.example.thesis.model.middleContent.UploadedImage
-import java.time.LocalDate
+import com.example.thesis.data.dataSource.UploadedImage
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

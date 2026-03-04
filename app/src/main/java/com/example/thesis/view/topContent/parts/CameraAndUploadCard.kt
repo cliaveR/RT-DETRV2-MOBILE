@@ -29,10 +29,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.thesis.data.dataSource.NavigationPath
+import com.example.thesis.view.cameraContent.CameraScreen
 
 @Preview
 @Composable
-fun CameraAndUploadCard(){
+fun CameraAndUploadCard(navController: NavController ){
 
     Card(modifier = Modifier
         .padding(16.dp),
@@ -59,7 +62,7 @@ fun CameraAndUploadCard(){
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CameraButton()
+                    CameraButton(navController)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Camera",
@@ -85,13 +88,15 @@ fun CameraAndUploadCard(){
 }
 
 @Composable
-fun CameraButton(onClick: () -> Unit = {}) {
+fun CameraButton(navController: NavController) {
     Box(
         modifier = Modifier
             .size(84.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Color.LightGray, RoundedCornerShape(12.dp))
-            .clickable { onClick() }, // just like ProjectCard
+            .clickable {
+                navController.navigate(NavigationPath.CAMERA.route)
+            }, // just like ProjectCard
         contentAlignment = Alignment.Center
     ) {
         Icon(
