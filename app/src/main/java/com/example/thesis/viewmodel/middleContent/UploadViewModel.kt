@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import com.example.thesis.model.middleContent.Project
-import com.example.thesis.model.middleContent.Upload
+import com.example.thesis.data.dataSource.Upload
 import java.time.LocalDateTime
 
 class UploadViewModel : ViewModel() {

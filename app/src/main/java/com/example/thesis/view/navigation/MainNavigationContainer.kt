@@ -13,7 +13,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.thesis.R
+import com.example.thesis.data.dataSource.NavigationPath
 import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
 import com.example.thesis.view.topBarContent.parts.HomeTopBar
 import com.example.thesis.view.topBarContent.parts.ProjectTopBar
@@ -22,12 +24,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainNavigationContainer(
-    selectedTab: Int,
-    onTabSelected: (Int) -> Unit,
+    currentRoute:String,
+    navController: NavController,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val showBottomBar = currentRoute in listOf(NavigationPath.MAIN.route, NavigationPath.MAP.route)
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -53,33 +57,14 @@ fun MainNavigationContainer(
                 ) {
                     val onNotify = { /* Your notification logic */ }
 
-                    when (selectedTab) {
+                    when (currentRoute) {
                         // 0 -> MainPage (Hamburger Menu + Logo)
-                        0 -> HomeTopBar(
+                        NavigationPath.MAIN.route -> HomeTopBar(
                             onMenuClick = { scope.launch { drawerState.open() } },
                             onNotify = onNotify
                         )
 
-                        // 1 -> MapPage (Back Button, No Title)
-                        1 -> ProjectTopBar(
-                            title = "",
-                            onBack = { onTabSelected(0) },
-                            onNotify = onNotify
-                        )
-
-                        // 2 & 3 -> Results & Uploads (Assuming you want Back button here too)
-                        2, 3 -> ProjectTopBar(
-                            title = if (selectedTab == 2) "Results" else "Uploads",
-                            onBack = { onTabSelected(0) },
-                            onNotify = onNotify
-                        )
-
-                        // 4 -> ProjectPage (Back Button + Project Title)
-                        4 -> ProjectTopBar(
-                            title = "Project Alpha",
-                            onBack = { onTabSelected(0) },
-                            onNotify = onNotify
-                        )
+                          // 1 -> MapPage (Back Button, No Title)
 
                         else -> HomeTopBar(
                             onMenuClick = { scope.launch { drawerState.open() } },
@@ -89,10 +74,15 @@ fun MainNavigationContainer(
                 }
             },
             bottomBar = {
-                if (selectedTab <= 1) {
+                if (showBottomBar) {
                     BottomNavigationBar(
-                        selectedTab = selectedTab,
-                        onTabSelected = onTabSelected
+                        selectedTab = 0,
+                        onTabSelected = {
+                            tab -> when(tab){
+                            0 -> navController.navigate(NavigationPath.MAIN.route)
+                            1 -> navController.navigate(NavigationPath.MAP.route)
+                            }
+                        }
                     )
                 }
             }

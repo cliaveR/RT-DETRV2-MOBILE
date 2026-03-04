@@ -1,11 +1,10 @@
 package com.example.thesis.viewmodel.middleContent
 
 import androidx.lifecycle.ViewModel
-import com.example.thesis.model.middleContent.UploadedImage
+import com.example.thesis.data.dataSource.UploadedImage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class SelectedUploadViewModel : ViewModel() {
