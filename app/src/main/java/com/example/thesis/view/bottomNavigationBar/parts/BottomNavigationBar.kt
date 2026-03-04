@@ -10,25 +10,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-@Preview(showBackground = true)
 @Composable
-fun BottomNavigationBar() {
-
+fun BottomNavigationBar(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit
+) {
     NavigationBar(
         containerColor = Color.White,
-        tonalElevation = 0.dp,         // removes gray tone
+        tonalElevation = 0.dp,
     ) {
-
-        // Home button (index 0)
+        // Home Button
         NavigationBarItem(
-            selected = false,
-            onClick = {  },
+            selected = selectedTab == 0,
+            onClick = { onTabSelected(0) },
             icon = {
                 Icon(
-                    imageVector = Icons.Outlined.Home,
+                    imageVector = if (selectedTab == 0) Icons.Filled.Home else Icons.Outlined.Home,
                     contentDescription = "Home",
                     tint = Color.Black
                 )
@@ -36,10 +35,10 @@ fun BottomNavigationBar() {
             label = { Text("Home") }
         )
 
-        // Map button (index 1)
+        // Map Button
         NavigationBarItem(
-            selected = false,
-            onClick = { },
+            selected = selectedTab == 1,
+            onClick = { onTabSelected(1) },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Map,
@@ -47,7 +46,7 @@ fun BottomNavigationBar() {
                     tint = Color.Black
                 )
             },
-            label = { Text("Map", color = Color.Black) }
+            label = { Text("Map") }
         )
     }
 }

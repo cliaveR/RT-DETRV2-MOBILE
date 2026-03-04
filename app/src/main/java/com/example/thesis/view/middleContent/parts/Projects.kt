@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -45,21 +46,39 @@ fun Projects(
                 .padding(bottom = 8.dp)
 
         )
+        if (projects.isEmpty()) {
 
-        LazyColumn {
-            items(projects) { project ->
-                ProjectCard(
-                    project = project,
-                    onClick = {
-                        projectViewModel.openProject(project.id)
-                    },
-                    onEditClick = {
-                        // Edit
-                    },
-                    onDeleteClick = {
-                        // Delete
-                    }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No Projects",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray, // Gray looks better for empty states
+                    textAlign = TextAlign.Center
                 )
+            }
+        } else {
+
+            LazyColumn {
+                items(projects) { project ->
+                    ProjectCard(
+                        project = project,
+                        onClick = {
+                            projectViewModel.openProject(project.id)
+                        },
+                        onEditClick = {
+                            // Edit
+                        },
+                        onDeleteClick = {
+                            // Delete
+                        }
+                    )
+                }
             }
         }
     }

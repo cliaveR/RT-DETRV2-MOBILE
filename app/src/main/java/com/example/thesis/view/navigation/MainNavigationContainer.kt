@@ -11,15 +11,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.thesis.R
-import com.example.thesis.view.topBarContent.parts.MenuCard
+import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
+import com.example.thesis.view.topBarContent.parts.NewPageTopBarCard
+import com.example.thesis.view.topBarContent.parts.ProjectTopBarCard
+import com.example.thesis.view.topBarContent.parts.TopBarCard
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainNavigationContainer(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -47,19 +52,40 @@ fun MainNavigationContainer(
                         .background(Color.White)
                         .padding(WindowInsets.statusBars.asPaddingValues())
                 ) {
-                    MenuCard(
-                        onMenuClick = {
-                            scope.launch { drawerState.open() }
-                        },
-                        onNotificationClick = {
+                    when (selectedTab) {
+                        0, 1 -> {
+                            TopBarCard(
+                                onMenuClick = { scope.launch { drawerState.open() } },
+                                onNotificationClick = { /* TODO */ }
+                            )
                         }
-                    )
+                        4 -> {
+                            ProjectTopBarCard(
+                                projectName = null,
+                                onBackClick = { onTabSelected(0) },
+                                onNotificationClick = { /* TODO */ }
+                            )
+                        }
+                        else -> {
+                            NewPageTopBarCard(
+                                onMenuClick = { onTabSelected(0) },
+                                onNotificationClick = { /* TODO */ }
+                            )
+                        }
+                    }
                 }
             },
-            content = { innerPadding ->
-                content(innerPadding)
+            bottomBar = {
+                if (selectedTab <= 1) {
+                    BottomNavigationBar(
+                        selectedTab = selectedTab,
+                        onTabSelected = onTabSelected
+                    )
+                }
             }
-        )
+        ) { innerPadding ->
+            content(innerPadding)
+        }
     }
 }
 
@@ -73,22 +99,12 @@ fun SidebarContent() {
     ) {
         Image(
             painter = painterResource(id = R.drawable.group_logo),
-            contentDescription = "G8KIPPERS Logo",
+            contentDescription = "Logo",
             modifier = Modifier.size(180.dp)
         )
-
         Spacer(modifier = Modifier.height(40.dp))
-
-        // 2. Navigation Items
-        NavigationItem(label = "About us") {
-            // Handle Navigation to About Us
-        }
-
-        // Add more items here if needed
-        // NavigationItem(label = "Settings") { }
-
+        NavigationItem(label = "About us") { /* Navigate */ }
         Spacer(modifier = Modifier.weight(1f))
-
         Text(
             text = "Copyright © 2026",
             fontSize = 12.sp,
@@ -104,11 +120,6 @@ fun NavigationItem(label: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = label,
-            color = Color.Black,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
+        Text(text = label, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
     }
 }

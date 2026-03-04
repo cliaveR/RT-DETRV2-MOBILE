@@ -10,8 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.thesis.viewmodel.middleContent.SelectedProjectViewModel
 
@@ -27,7 +30,9 @@ fun SelectedProjectDetails(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
+
     ) {
+        ProjectImageTitle()
 
         // Select All + Filter
         Row(
@@ -37,6 +42,7 @@ fun SelectedProjectDetails(
 
             verticalAlignment = Alignment.CenterVertically
         ) {
+
 
             Checkbox(
                 checked = images.isNotEmpty() && selectedImages.size == images.size,
@@ -76,5 +82,25 @@ fun SelectedProjectDetails(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun ProjectImageTitle(){
+    Column (
+        modifier = Modifier
+            .padding(bottom = 16.dp)
+            .padding(top=16.dp)
+
+
+    ){
+        Text(
+            text = "Images",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Left,
+            color = Color.Black,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }

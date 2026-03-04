@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.example.thesis.R
 @Preview
 @Composable
-fun MenuCard(
+fun TopBarCard(
     onMenuClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier

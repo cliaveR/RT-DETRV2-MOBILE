@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -22,23 +24,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.arcgismaps.mapping.view.GraphicsOverlay
+import com.arcgismaps.toolkit.geoviewcompose.MapView
+import com.example.thesis.Map.MapUtils
+import com.example.thesis.Map.MapUtils.createMap
+import com.arcgismaps.Color as ArcColor
+
 
 
 @Preview
 
 @Composable
 fun DetectionDetailsCard() {
+
+
+    // TEMPORARY: This list will come from the cloud in the future
+    val map = remember { createMap() }
+    val graphicsOverlay = remember {
+        GraphicsOverlay().apply {
+            graphics.addAll(
+                listOf(
+                    // Just call MapUtils.createPointGraphic
+                    MapUtils.createPointGraphic(120.371082, 17.595492, ArcColor.red),
+                    MapUtils.createPointGraphic(120.399521, 17.581936, ArcColor.green),
+                    MapUtils.createPointGraphic(120.389398, 17.589375, ArcColor.red)
+                )
+            )
+        }
+    }
+
     var defect by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var roadSection by remember { mutableStateOf("") }
     var station by remember { mutableStateOf("") }
-
+    var severityLevel by remember { mutableStateOf("") }
+    var showGuide by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier.padding(16.dp),
         shape = RoundedCornerShape(16.dp),
@@ -63,18 +90,32 @@ fun DetectionDetailsCard() {
                 InputBox("Road Section", roadSection, { roadSection = it }, Modifier.weight(1f))
                 InputBox("Station", station, { station = it }, Modifier.weight(1f))
             }
+            Spacer(modifier = Modifier.height(12.dp))
+            ReadOnlySeverityDisplay(
+                severityValue = severityLevel,
+                onInfoClick = { showGuide = true }
+            )
+
+            if (showGuide) {
+                SeverityGuidePopup(onDismiss = { showGuide = false })
+            }
 
             // --- Map Placeholder ---//TODO GIS MAP VIEW FOR SPECIFIC UPLOAD
 
             Spacer(modifier = Modifier.height(24.dp))
             Box(
                 modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .background(Color.LightGray, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
+                    .height(250.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF2F2F2)) // Match your UI's light gray
             ) {
-                Text("GIS Map Component Goes Here", color = Color.DarkGray)
+                MapView(
+                    modifier = Modifier.fillMaxSize(),
+                    arcGISMap = map,
+                    graphicsOverlays = listOf(graphicsOverlay)
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -279,4 +320,80 @@ fun UploadResultTitleText(){
             modifier = Modifier.fillMaxWidth()
         )
     }
+}
+@Composable
+fun ReadOnlySeverityDisplay(severityValue: String, onInfoClick: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth(0.5f)) { // Adjusted width per image
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 4.dp)
+        ) {
+            Text(
+                text = "Severity Level",
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            // Clickable Info Icon
+            androidx.compose.material3.IconButton(
+                onClick = onInfoClick,
+                modifier = Modifier.size(16.dp)
+            ) {
+                androidx.compose.material3.Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Outlined.Info,
+                    contentDescription = "Show Guide",
+                    tint = Color.Gray
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .background(Color(0xFFF2F2F2), RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = severityValue,
+                fontSize = 14.sp,
+                color = Color.Black
+            )
+        }
+    }
+}
+
+@Composable
+fun SeverityGuidePopup(onDismiss: () -> Unit) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text("Got it", color = Color.Black)
+            }
+        },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Outlined.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Severity Guide", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column {
+                Text("• Level 1: Minor (1 Damages Detected)", fontSize = 14.sp)
+                Spacer(Modifier.height(8.dp))
+                Text("• Level 2: Moderate (2-3 Damages Detected)", fontSize = 14.sp)
+                Spacer(Modifier.height(8.dp))
+                Text("• Level 3: Severe (>3 Damages Detected)", fontSize = 14.sp)
+            }
+        },
+        containerColor = Color.White,
+        shape = RoundedCornerShape(12.dp)
+    )
 }

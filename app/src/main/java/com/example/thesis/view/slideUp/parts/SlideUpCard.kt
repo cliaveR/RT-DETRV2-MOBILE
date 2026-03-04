@@ -1,4 +1,4 @@
-package com.example.thesis.view.slideUp
+package com.example.thesis.view.slideUp.parts
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -17,20 +17,18 @@ import com.example.thesis.viewmodel.middleContent.ProjectViewModel
 @Composable
 fun SlideUpCard(
     projectViewModel: ProjectViewModel = viewModel(),
-    onDismiss: () -> Unit = {}
 ) {
     var showFilters by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState()
-    ) {
+
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
+                .heightIn(min = 400.dp)
         ) {
+
 
             Row(
                 modifier = Modifier
@@ -48,11 +46,10 @@ fun SlideUpCard(
 
             Projects(projectViewModel = projectViewModel)
         }
-    }
+
 
     if (showFilters) {
-        SlideUpCardFilter(
-            onDismiss = { showFilters = false }
+        SlideUpCardFilter(onDismiss = { showFilters = false }
         )
     }
 }
