@@ -15,9 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.thesis.R
 import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
-import com.example.thesis.view.topBarContent.parts.NewPageTopBarCard
-import com.example.thesis.view.topBarContent.parts.ProjectTopBarCard
-import com.example.thesis.view.topBarContent.parts.TopBarCard
+import com.example.thesis.view.topBarContent.parts.HomeTopBar
+import com.example.thesis.view.topBarContent.parts.ProjectTopBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,26 +51,40 @@ fun MainNavigationContainer(
                         .background(Color.White)
                         .padding(WindowInsets.statusBars.asPaddingValues())
                 ) {
+                    val onNotify = { /* Your notification logic */ }
+
                     when (selectedTab) {
-                        0, 1 -> {
-                            TopBarCard(
-                                onMenuClick = { scope.launch { drawerState.open() } },
-                                onNotificationClick = { /* TODO */ }
-                            )
-                        }
-                        4 -> {
-                            ProjectTopBarCard(
-                                projectName = null,
-                                onBackClick = { onTabSelected(0) },
-                                onNotificationClick = { /* TODO */ }
-                            )
-                        }
-                        else -> {
-                            NewPageTopBarCard(
-                                onMenuClick = { onTabSelected(0) },
-                                onNotificationClick = { /* TODO */ }
-                            )
-                        }
+                        // 0 -> MainPage (Hamburger Menu + Logo)
+                        0 -> HomeTopBar(
+                            onMenuClick = { scope.launch { drawerState.open() } },
+                            onNotify = onNotify
+                        )
+
+                        // 1 -> MapPage (Back Button, No Title)
+                        1 -> ProjectTopBar(
+                            title = "",
+                            onBack = { onTabSelected(0) },
+                            onNotify = onNotify
+                        )
+
+                        // 2 & 3 -> Results & Uploads (Assuming you want Back button here too)
+                        2, 3 -> ProjectTopBar(
+                            title = if (selectedTab == 2) "Results" else "Uploads",
+                            onBack = { onTabSelected(0) },
+                            onNotify = onNotify
+                        )
+
+                        // 4 -> ProjectPage (Back Button + Project Title)
+                        4 -> ProjectTopBar(
+                            title = "Project Alpha",
+                            onBack = { onTabSelected(0) },
+                            onNotify = onNotify
+                        )
+
+                        else -> HomeTopBar(
+                            onMenuClick = { scope.launch { drawerState.open() } },
+                            onNotify = onNotify
+                        )
                     }
                 }
             },
