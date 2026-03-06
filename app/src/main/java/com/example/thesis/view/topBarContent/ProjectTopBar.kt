@@ -1,4 +1,4 @@
-package com.example.thesis.view.topBarContent.parts
+package com.example.thesis.view.topBarContent
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

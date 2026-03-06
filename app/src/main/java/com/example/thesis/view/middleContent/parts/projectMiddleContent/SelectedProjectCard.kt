@@ -1,4 +1,4 @@
-package com.example.thesis.view.middleContent.parts
+package com.example.thesis.view.middleContent.parts.projectMiddleContent
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.thesis.data.dataSource.ProjectImage
+import com.example.thesis.model.data.ProjectImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

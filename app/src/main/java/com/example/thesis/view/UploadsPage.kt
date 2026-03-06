@@ -12,18 +12,6 @@ import com.example.thesis.view.middleContent.parts.BulkUploadCard
 @Preview
 @Composable
 fun UploadsPage(){
-    Scaffold (
-    ){
-            innerPadding ->
 
-
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        )
-        {
             BulkUploadCard()
-        }
-    }
 }

@@ -1,7 +1,7 @@
 package com.example.thesis.viewmodel.middleContent
 
 import androidx.lifecycle.ViewModel
-import com.example.thesis.data.dataSource.ProjectImage
+import com.example.thesis.model.data.ProjectImage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

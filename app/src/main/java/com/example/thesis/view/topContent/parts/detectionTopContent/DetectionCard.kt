@@ -1,4 +1,4 @@
-package com.example.thesis.view.topContent.parts
+package com.example.thesis.view.topContent.parts.detectionTopContent
 
 import coil.compose.AsyncImage
 import coil.size.Precision

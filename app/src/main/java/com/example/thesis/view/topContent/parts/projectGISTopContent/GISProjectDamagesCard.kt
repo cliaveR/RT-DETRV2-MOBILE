@@ -1,4 +1,4 @@
-package com.example.thesis.view.topContent.parts
+package com.example.thesis.view.topContent.parts.projectGISTopContent
 import com.arcgismaps.Color as ArcColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

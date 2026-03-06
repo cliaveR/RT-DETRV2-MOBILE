@@ -4,8 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,15 +15,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.thesis.data.dataSource.NavigationPath
+import com.example.thesis.model.enumData.NAVIGATIONPATH
 import com.example.thesis.ui.theme.ThesisTheme
 import com.example.thesis.view.launchScreen.LaunchScreenView
 import kotlinx.coroutines.delay
 import com.example.thesis.view.MainPage
-import com.example.thesis.view.MapPage
 import com.example.thesis.view.ProjectPage
-import com.example.thesis.view.ResultsPage
-import com.example.thesis.view.UploadsPage
 import com.example.thesis.view.cameraContent.CameraScreen
 import com.example.thesis.view.navigation.MainNavigationContainer
 
@@ -47,12 +42,12 @@ class MainActivity : ComponentActivity() {
     @Preview(showBackground = true)
     @Composable
     fun GreetingPreview() {
-        ThesisTheme {
-            ProjectPage()
+            ThesisTheme {
+                ProjectPage()
 
+            }
         }
     }
-}
 
 @Composable
 fun MainAppNavigation() {
@@ -62,21 +57,21 @@ fun MainAppNavigation() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = NavigationPath.SPLASH.route
+        startDestination = NAVIGATIONPATH.SPLASH.route
     ){
-        composable (NavigationPath.SPLASH.route){
+        composable (NAVIGATIONPATH.SPLASH.route){
             LaunchScreenView()
             LaunchedEffect(Unit) {
                 delay(300)
-                navController.navigate(NavigationPath.MAIN.route){
-                    popUpTo(NavigationPath.MAIN.route){inclusive = true}
+                navController.navigate(NAVIGATIONPATH.MAIN.route){
+                    popUpTo(NAVIGATIONPATH.MAIN.route){inclusive = true}
                 }
             }
         }
 
-        composable (NavigationPath.MAIN.route){
+        composable (NAVIGATIONPATH.MAIN.route){
             MainNavigationContainer(
-                currentRoute = NavigationPath.MAIN.route,
+                currentRoute = NAVIGATIONPATH.MAIN.route,
                 navController = navController
             ) {
                 innerPadding ->
@@ -85,9 +80,9 @@ fun MainAppNavigation() {
                 )
             }
         }
-        composable (NavigationPath.MAP.route){
+        composable (NAVIGATIONPATH.MAP.route){
             MainNavigationContainer(
-                currentRoute = NavigationPath.MAIN.route,
+                currentRoute = NAVIGATIONPATH.MAIN.route,
                 navController = navController
             ) {
                 innerPadding ->
@@ -96,9 +91,9 @@ fun MainAppNavigation() {
                 )
             }
         }
-        composable (NavigationPath.RESULTS.route){
+        composable (NAVIGATIONPATH.RESULTS.route){
             MainNavigationContainer(
-                currentRoute = NavigationPath.MAIN.route,
+                currentRoute = NAVIGATIONPATH.MAIN.route,
                 navController = navController
             ) {
                 innerPadding ->
@@ -107,9 +102,9 @@ fun MainAppNavigation() {
                 )
             }
         }
-        composable (NavigationPath.UPLOAD.route){
+        composable (NAVIGATIONPATH.UPLOAD.route){
             MainNavigationContainer(
-                currentRoute = NavigationPath.MAIN.route,
+                currentRoute = NAVIGATIONPATH.MAIN.route,
                 navController = navController
             ) {
                 innerPadding ->
@@ -119,9 +114,9 @@ fun MainAppNavigation() {
             }
         }
 
-        composable (NavigationPath.PROJECT.route){
+        composable (NAVIGATIONPATH.PROJECT.route){
             MainNavigationContainer(
-                currentRoute = NavigationPath.MAIN.route,
+                currentRoute = NAVIGATIONPATH.MAIN.route,
                 navController = navController
             ) {
                     innerPadding ->
@@ -130,7 +125,7 @@ fun MainAppNavigation() {
                 )
             }
         }
-        composable (NavigationPath.CAMERA.route){
+        composable (NAVIGATIONPATH.CAMERA.route){
             CameraScreen(navController)
         }
 

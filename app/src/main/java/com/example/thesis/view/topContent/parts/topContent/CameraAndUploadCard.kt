@@ -1,4 +1,4 @@
-package com.example.thesis.view.topContent.parts
+package com.example.thesis.view.topContent.parts.topContent
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
@@ -30,8 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.thesis.data.dataSource.NavigationPath
-import com.example.thesis.view.cameraContent.CameraScreen
+import com.example.thesis.model.enumData.NAVIGATIONPATH
 
 @Preview
 @Composable
@@ -95,7 +94,7 @@ fun CameraButton(navController: NavController) {
             .clip(RoundedCornerShape(12.dp))
             .background(Color.LightGray, RoundedCornerShape(12.dp))
             .clickable {
-                navController.navigate(NavigationPath.CAMERA.route)
+                navController.navigate(NAVIGATIONPATH.CAMERA.route)
             }, // just like ProjectCard
         contentAlignment = Alignment.Center
     ) {

@@ -13,19 +13,8 @@ import com.example.thesis.view.topContent.ProjectGISTopContent
 @Preview
 @Composable
 fun ProjectPage(){
-    Scaffold (
-      ){
-            innerPadding ->
 
-
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        )
-        {
             ProjectGISTopContent()
             ProjectMiddleContent()
-        }
-    }
+
 }

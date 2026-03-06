@@ -1,6 +1,6 @@
-package com.example.thesis.data.dataSource
+package com.example.thesis.model.enumData
 
-enum class NavigationPath {
+enum class NAVIGATIONPATH {
 CAMERA,UPLOAD,SPLASH,MAIN,MAP,RESULTS,PROJECT;
     val route: String get() = name.lowercase()
 }

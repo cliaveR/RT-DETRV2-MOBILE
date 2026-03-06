@@ -14,21 +14,8 @@ import com.example.thesis.view.topContent.DetectionTopContent
 @Preview
 @Composable
 fun ResultsPage(){
-    val scrollState = rememberScrollState()
-    Scaffold (
-       ){
-            innerPadding ->
 
-
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-        )
-        {
             DetectionTopContent()
             DetectionDetailsMiddleContent()
-        }
-    }
+
 }
