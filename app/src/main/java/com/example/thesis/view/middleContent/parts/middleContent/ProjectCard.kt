@@ -1,4 +1,4 @@
-package com.example.thesis.view.middleContent.parts
+package com.example.thesis.view.middleContent.parts.middleContent
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,7 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.time.format.DateTimeFormatter
-import com.example.thesis.data.dataSource.Project
+import com.example.thesis.model.data.Project
+import java.time.LocalDateTime
 
 @Preview(showBackground = true)
 @Composable
@@ -27,7 +28,7 @@ fun PreviewProjectCard() {
     val sampleProject = Project(
         id="1",
         name = "My Sample Project",
-        lastOpened = java.time.LocalDateTime.now() // just for demo
+        lastOpened = LocalDateTime.now() // just for demo
     )
 
     // Call the composable with sample data

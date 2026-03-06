@@ -12,27 +12,26 @@ import com.example.thesis.view.middleContent.MiddleContent
 import com.example.thesis.view.topContent.TopContent
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+
+@Composable
+fun MainPage(navController: NavController) {
+    Scaffold {
+            innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
+        ) {
+            TopContent(navController = navController)
+            MiddleContent()
+        }
+    }
+}
 
 @Preview
 @Composable
-fun MainPage(navController: NavController){
-
-    Scaffold (
-       ){
-            innerPadding ->
-
-
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .background(Color(0xFFF5F5F5))
-
-            )
-            {
-
-                TopContent(navController = navController)
-                MiddleContent()
-            }
-        }
+fun MainPagePreview() {
+    MainPage(navController = rememberNavController())
 }

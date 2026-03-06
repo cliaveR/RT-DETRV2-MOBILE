@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.thesis.view.middleContent.parts.Projects
+import com.example.thesis.view.middleContent.parts.middleContent.Projects
 import com.example.thesis.viewmodel.middleContent.ProjectViewModel
 
 @Preview

@@ -15,10 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.thesis.R
-import com.example.thesis.data.dataSource.NavigationPath
+import com.example.thesis.model.enumData.NAVIGATIONPATH
 import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
-import com.example.thesis.view.topBarContent.parts.HomeTopBar
-import com.example.thesis.view.topBarContent.parts.ProjectTopBar
+import com.example.thesis.view.topBarContent.HomeTopBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,7 +30,7 @@ fun MainNavigationContainer(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    val showBottomBar = currentRoute in listOf(NavigationPath.MAIN.route, NavigationPath.MAP.route)
+    val showBottomBar = currentRoute in listOf(NAVIGATIONPATH.MAIN.route, NAVIGATIONPATH.MAP.route)
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -59,7 +58,7 @@ fun MainNavigationContainer(
 
                     when (currentRoute) {
                         // 0 -> MainPage (Hamburger Menu + Logo)
-                        NavigationPath.MAIN.route -> HomeTopBar(
+                        NAVIGATIONPATH.MAIN.route -> HomeTopBar(
                             onMenuClick = { scope.launch { drawerState.open() } },
                             onNotify = onNotify
                         )
@@ -79,8 +78,8 @@ fun MainNavigationContainer(
                         selectedTab = 0,
                         onTabSelected = {
                             tab -> when(tab){
-                            0 -> navController.navigate(NavigationPath.MAIN.route)
-                            1 -> navController.navigate(NavigationPath.MAP.route)
+                            0 -> navController.navigate(NAVIGATIONPATH.MAIN.route)
+                            1 -> navController.navigate(NAVIGATIONPATH.MAP.route)
                             }
                         }
                     )

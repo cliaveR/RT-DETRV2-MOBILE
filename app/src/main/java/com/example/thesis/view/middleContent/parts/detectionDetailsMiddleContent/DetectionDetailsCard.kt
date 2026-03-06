@@ -1,4 +1,4 @@
-package com.example.thesis.view.middleContent.parts
+package com.example.thesis.view.middleContent.parts.detectionDetailsMiddleContent
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,10 +13,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,27 +50,25 @@ import com.example.thesis.Map.MapUtils.createMap
 import com.arcgismaps.Color as ArcColor
 
 
-
 @Preview
-
 @Composable
 fun DetectionDetailsCard() {
 
+    val isPreview = LocalInspectionMode.current
 
-    // TEMPORARY: This list will come from the cloud in the future
-    val map = remember { createMap() }
-    val graphicsOverlay = remember {
+    // Only initialize ArcGIS stuff when NOT in preview
+    val map = if (!isPreview) remember { createMap() } else null
+    val graphicsOverlay = if (!isPreview) remember {
         GraphicsOverlay().apply {
             graphics.addAll(
                 listOf(
-                    // Just call MapUtils.createPointGraphic
                     MapUtils.createPointGraphic(120.371082, 17.595492, ArcColor.red),
                     MapUtils.createPointGraphic(120.399521, 17.581936, ArcColor.green),
                     MapUtils.createPointGraphic(120.389398, 17.589375, ArcColor.red)
                 )
             )
         }
-    }
+    } else null
 
     var defect by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
@@ -66,6 +76,7 @@ fun DetectionDetailsCard() {
     var station by remember { mutableStateOf("") }
     var severityLevel by remember { mutableStateOf("") }
     var showGuide by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.padding(16.dp),
         shape = RoundedCornerShape(16.dp),
@@ -79,7 +90,6 @@ fun DetectionDetailsCard() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             UploadResultTitleText()
-
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 InputBox("Defect", defect, { defect = it }, Modifier.weight(1f))
@@ -100,31 +110,44 @@ fun DetectionDetailsCard() {
                 SeverityGuidePopup(onDismiss = { showGuide = false })
             }
 
-            // --- Map Placeholder ---//TODO GIS MAP VIEW FOR SPECIFIC UPLOAD
-
             Spacer(modifier = Modifier.height(24.dp))
+
+            // --- Map View / Placeholder ---
             Box(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth()
                     .height(250.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF2F2F2)) // Match your UI's light gray
+                    .background(Color(0xFFF2F2F2))
             ) {
-                MapView(
-                    modifier = Modifier.fillMaxSize(),
-                    arcGISMap = map,
-                    graphicsOverlays = listOf(graphicsOverlay)
-                )
+                if (isPreview || map == null || graphicsOverlay == null) {
+                    // Preview-safe placeholder
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "🗺️ Map Preview Unavailable",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+                } else {
+                    MapView(
+                        modifier = Modifier.fillMaxSize(),
+                        arcGISMap = map,
+                        graphicsOverlays = listOf(graphicsOverlay)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
             CoordinateTable()
 
-            // --- Confirm Button Section ---
-            Spacer(modifier = Modifier.height(32.dp)) // Extra space before the button
+            Spacer(modifier = Modifier.height(32.dp))
 
-            androidx.compose.material3.Button(
+            Button(
                 onClick = {
                     /* TODO: Handle confirmation logic here */
                 },
@@ -132,8 +155,8 @@ fun DetectionDetailsCard() {
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF000000), // A professional blue, or use MaterialTheme.colorScheme.primary
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF000000),
                     contentColor = Color.White
                 )
             ) {
@@ -148,26 +171,28 @@ fun DetectionDetailsCard() {
 }
 
 @Composable
-fun InputBox(label: String, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-    ) {
+fun InputBox(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
         Text(
             text = label,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             modifier = Modifier.padding(bottom = 4.dp)
         )
-
-        androidx.compose.material3.OutlinedTextField(
+        OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
             shape = RoundedCornerShape(8.dp),
-            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color(0xFFF2F2F2), // Light gray like your image
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color(0xFFF2F2F2),
                 focusedContainerColor = Color(0xFFF2F2F2),
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = Color.Gray
@@ -175,7 +200,6 @@ fun InputBox(label: String, value: String, onValueChange: (String) -> Unit, modi
         )
     }
 }
-
 
 @Composable
 fun CoordinateTable() {
@@ -185,24 +209,19 @@ fun CoordinateTable() {
             .padding(top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Subtle Header Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp)
         ) {
-            Spacer(
-                modifier = Modifier
-                    .weight(0.3f)
-            )
+            Spacer(modifier = Modifier.weight(0.3f))
             Text(
                 text = "DECIMAL",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             )
             Text(
                 text = "DMS",
@@ -210,8 +229,7 @@ fun CoordinateTable() {
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             )
         }
 
@@ -226,21 +244,17 @@ fun CoordinateRow(label: String) {
     var dmsValue by remember { mutableStateOf("") }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Side Label
         Text(
             text = label,
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.DarkGray,
-            modifier = Modifier
-                .weight(0.4F)
+            modifier = Modifier.weight(0.4F)
         )
 
-        // The "Input Capsule"
         Row(
             modifier = Modifier
                 .weight(2f)
@@ -254,11 +268,9 @@ fun CoordinateRow(label: String) {
             CoordinateInputField(
                 value = decimalValue,
                 onValueChange = { decimalValue = it },
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             )
 
-            // Vertical Divider
             Box(
                 modifier = Modifier
                     .width(1.dp)
@@ -269,8 +281,7 @@ fun CoordinateRow(label: String) {
             CoordinateInputField(
                 value = dmsValue,
                 onValueChange = { dmsValue = it },
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -282,11 +293,11 @@ fun CoordinateInputField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    androidx.compose.foundation.text.BasicTextField(
+    BasicTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.padding(horizontal = 8.dp),
-        textStyle = androidx.compose.ui.text.TextStyle(
+        textStyle = TextStyle(
             textAlign = TextAlign.Center,
             fontSize = 14.sp,
             color = Color.Black
@@ -295,7 +306,7 @@ fun CoordinateInputField(
             if (value.isEmpty()) {
                 Text(
                     "",
-                    style = androidx.compose.ui.text.TextStyle(
+                    style = TextStyle(
                         textAlign = TextAlign.Center,
                         color = Color.LightGray,
                         fontSize = 14.sp
@@ -309,8 +320,8 @@ fun CoordinateInputField(
 }
 
 @Composable
-fun UploadResultTitleText(){
-    Column (modifier = Modifier.padding(bottom = 12.dp)){
+fun UploadResultTitleText() {
+    Column(modifier = Modifier.padding(bottom = 12.dp)) {
         Text(
             text = "Road Damage Details",
             fontSize = 18.sp,
@@ -321,9 +332,10 @@ fun UploadResultTitleText(){
         )
     }
 }
+
 @Composable
 fun ReadOnlySeverityDisplay(severityValue: String, onInfoClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth(0.5f)) { // Adjusted width per image
+    Column(modifier = Modifier.fillMaxWidth(0.5f)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 4.dp)
@@ -334,13 +346,12 @@ fun ReadOnlySeverityDisplay(severityValue: String, onInfoClick: () -> Unit) {
                 fontSize = 12.sp
             )
             Spacer(modifier = Modifier.width(6.dp))
-            // Clickable Info Icon
-            androidx.compose.material3.IconButton(
+            IconButton(
                 onClick = onInfoClick,
                 modifier = Modifier.size(16.dp)
             ) {
-                androidx.compose.material3.Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Outlined.Info,
+                Icon(
+                    imageVector = Icons.Outlined.Info,
                     contentDescription = "Show Guide",
                     tint = Color.Gray
                 )
@@ -366,17 +377,17 @@ fun ReadOnlySeverityDisplay(severityValue: String, onInfoClick: () -> Unit) {
 
 @Composable
 fun SeverityGuidePopup(onDismiss: () -> Unit) {
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            androidx.compose.material3.TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss) {
                 Text("Got it", color = Color.Black)
             }
         },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                androidx.compose.material3.Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Outlined.Info,
+                Icon(
+                    imageVector = Icons.Outlined.Info,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )

@@ -1,4 +1,4 @@
-package com.example.thesis.view.middleContent.parts
+package com.example.thesis.view.middleContent.parts.projectMiddleContent
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
