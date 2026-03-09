@@ -1,4 +1,4 @@
-package com.example.thesis.view
+package com.example.thesis.view.appPages
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,14 +10,14 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.thesis.view.middleContent.MapContent
 import com.example.thesis.view.slideUp.SlideUpContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapPage() {
+fun MapPage(navController: NavHostController) {
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     BottomSheetScaffold(

@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.thesis.R
 
+
+
 @Composable
 private fun BaseTopBar(
     navigationIcon: @Composable (() -> Unit)? = null,

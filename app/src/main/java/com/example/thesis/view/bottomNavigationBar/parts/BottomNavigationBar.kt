@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
@@ -41,7 +42,7 @@ fun BottomNavigationBar(
             onClick = { onTabSelected(1) },
             icon = {
                 Icon(
-                    imageVector = Icons.Filled.Map,
+                    imageVector = if (selectedTab == 1) Icons.Filled.Map else Icons.Outlined.Map,
                     contentDescription = "Map",
                     tint = Color.Black
                 )

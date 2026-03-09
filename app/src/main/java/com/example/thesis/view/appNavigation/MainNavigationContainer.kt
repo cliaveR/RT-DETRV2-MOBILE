@@ -1,4 +1,4 @@
-package com.example.thesis.view.navigation
+package com.example.thesis.view.appNavigation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,8 +16,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.thesis.R
 import com.example.thesis.model.enumData.NAVIGATIONPATH
+import com.example.thesis.view.appNavigation.sideBarContent.SidebarContent
+import com.example.thesis.view.bottomNavigationBar.BottomNavBar
 import com.example.thesis.view.bottomNavigationBar.parts.BottomNavigationBar
 import com.example.thesis.view.topBarContent.HomeTopBar
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,13 +28,19 @@ import kotlinx.coroutines.launch
 fun MainNavigationContainer(
     currentRoute:String,
     navController: NavController,
-    content: @Composable (PaddingValues) -> Unit
+    content: @Composable () -> Unit // THIS IS THE CONTENT OF THE PAGES IT JUST PUSH HERE FOR THE SCAFFOLDING
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    //this shows if we are mainly on the main and map pages we don't want to render unless is this route
     val showBottomBar = currentRoute in listOf(NAVIGATIONPATH.MAIN.route, NAVIGATIONPATH.MAP.route)
 
+    var selectedTab = when(currentRoute){
+        NAVIGATIONPATH.MAIN.route -> 0
+        NAVIGATIONPATH.MAP.route -> 1
+        else -> 0
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = true,
@@ -48,34 +57,12 @@ fun MainNavigationContainer(
         }
     ) {
         Scaffold(
-            topBar = {
-                Box(
-                    modifier = Modifier
-                        .background(Color.White)
-                        .padding(WindowInsets.statusBars.asPaddingValues())
-                ) {
-                    val onNotify = { /* Your notification logic */ }
-
-                    when (currentRoute) {
-                        // 0 -> MainPage (Hamburger Menu + Logo)
-                        NAVIGATIONPATH.MAIN.route -> HomeTopBar(
-                            onMenuClick = { scope.launch { drawerState.open() } },
-                            onNotify = onNotify
-                        )
-
-                          // 1 -> MapPage (Back Button, No Title)
-
-                        else -> HomeTopBar(
-                            onMenuClick = { scope.launch { drawerState.open() } },
-                            onNotify = onNotify
-                        )
-                    }
-                }
-            },
+            containerColor = Color.White,
+            topBar = { TopBarContent(currentRoute,scope,drawerState) },
             bottomBar = {
                 if (showBottomBar) {
-                    BottomNavigationBar(
-                        selectedTab = 0,
+                    BottomNavBar(
+                        selectedTab = selectedTab,
                         onTabSelected = {
                             tab -> when(tab){
                             0 -> navController.navigate(NAVIGATIONPATH.MAIN.route)
@@ -86,42 +73,35 @@ fun MainNavigationContainer(
                 }
             }
         ) { innerPadding ->
-            content(innerPadding)
+            Box(modifier = Modifier.padding(innerPadding)) {
+                content()  // padding handled here, not pushed down
+            }
         }
     }
 }
 
 @Composable
-fun SidebarContent() {
-    Column(
+fun TopBarContent(currentRoute: String,scope: CoroutineScope,drawerState: DrawerState){
+    Box(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 64.dp, bottom = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(WindowInsets.statusBars.asPaddingValues())
+            .background(Color.White)
+
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.group_logo),
-            contentDescription = "Logo",
-            modifier = Modifier.size(180.dp)
-        )
-        Spacer(modifier = Modifier.height(40.dp))
-        NavigationItem(label = "About us") { /* Navigate */ }
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = "Copyright © 2026",
-            fontSize = 12.sp,
-            color = Color.Gray,
-            fontWeight = FontWeight.Light
-        )
+        val onNotify = { /* Your notification logic */ }
+
+        when (currentRoute) {
+            // TODO ADD FUNCTIONALITY OF THE TOPBAR CHANGES BASED ON THE ROUTE
+            NAVIGATIONPATH.MAIN.route -> HomeTopBar(
+                onMenuClick = { scope.launch { drawerState.open() } },
+                onNotify = onNotify
+            )
+
+            else -> HomeTopBar(
+                onMenuClick = { scope.launch { drawerState.open() } },
+                onNotify = onNotify
+            )
+        }
     }
 }
 
-@Composable
-fun NavigationItem(label: String, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-    ) {
-        Text(text = label, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-    }
-}
