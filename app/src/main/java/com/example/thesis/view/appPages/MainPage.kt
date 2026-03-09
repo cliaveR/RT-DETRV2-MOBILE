@@ -1,4 +1,4 @@
-package com.example.thesis.view
+package com.example.thesis.view.appPages
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -16,18 +16,16 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun MainPage(navController: NavController) {
-    Scaffold {
-            innerPadding ->
+
         Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
                 .background(Color(0xFFF5F5F5))
         ) {
             TopContent(navController = navController)
             MiddleContent()
         }
-    }
+
 }
 
 @Preview

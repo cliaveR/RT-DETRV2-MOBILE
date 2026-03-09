@@ -1,4 +1,4 @@
-package com.example.thesis.view.popUp.parts
+package com.example.thesis.view.popUpContent.parts
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
