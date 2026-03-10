@@ -32,9 +32,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.thesis.model.enumData.NAVIGATIONPATH
 
+@Suppress("PreviewAnnotationInFunctionWithParameters")
 @Preview
 @Composable
-fun CameraAndUploadCard(navController: NavController ){
+fun CameraAndUploadHolder(navController: NavController ){
 
     Card(modifier = Modifier
         .padding(16.dp),
@@ -72,7 +73,7 @@ fun CameraAndUploadCard(navController: NavController ){
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    UploadButton()
+                    UploadButton(navController)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Upload",
@@ -86,45 +87,8 @@ fun CameraAndUploadCard(navController: NavController ){
     }
 }
 
-@Composable
-fun CameraButton(navController: NavController) {
-    Box(
-        modifier = Modifier
-            .size(84.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.LightGray, RoundedCornerShape(12.dp))
-            .clickable {
-                navController.navigate(NAVIGATIONPATH.CAMERA.route)
-            }, // just like ProjectCard
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.PhotoCamera,
-            contentDescription = "Camera",
-            tint = Color.Black,
-            modifier = Modifier.size(32.dp)
-        )
-    }
-}
 
-@Composable
-fun UploadButton(onClick: () -> Unit = {}) {
-    Box(
-        modifier = Modifier
-            .size(84.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.LightGray, RoundedCornerShape(12.dp))
-            .clickable { onClick() }, // just like ProjectCard
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.FileUpload,
-            contentDescription = "Upload",
-            tint = Color.Black,
-            modifier = Modifier.size(32.dp)
-        )
-    }
-}
+
 
 @Composable
 fun TittleText(){
