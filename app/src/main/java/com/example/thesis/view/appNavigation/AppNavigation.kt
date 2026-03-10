@@ -12,6 +12,7 @@ import com.example.thesis.view.appPages.MainPage
 import com.example.thesis.view.appPages.MapPage
 import com.example.thesis.view.cameraContent.CameraScreen
 import com.example.thesis.view.launchScreen.LaunchScreenView
+import com.example.thesis.view.uploadImageContent.UploadImagePage
 import kotlinx.coroutines.delay
 
 
@@ -65,9 +66,7 @@ fun AppNavigation(navController: NavHostController) {
             MainNavigationContainer(
                 currentRoute,navController
             ) {
-                MainPage(
-                    navController = navController
-                )
+                UploadImagePage(navController)
             }
         }
 
