@@ -1,5 +1,6 @@
 package com.example.thesis.view.cameraContent
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.os.Environment
@@ -43,6 +44,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,6 +86,19 @@ fun CameraPreview(navController: NavController) {
 
     var downloadedBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     var statusMessage by remember { mutableStateOf("") }
+    // ... existing code ...
+    var currentLocation by remember { mutableStateOf<android.location.Location?>(null) }   // ✅ NEW
+
+    // ✅ NEW: Fetch last known location
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    @SuppressLint("MissingPermission")
+    LaunchedEffect(Unit) {
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { loc -> currentLocation = loc }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
@@ -131,6 +147,7 @@ fun CameraPreview(navController: NavController) {
                     context = context,
                     imageCapture = imageCapture,
                     scope = scope,
+                    location = currentLocation,    // ✅ pass location
                     onUploadSuccess = { filename, resultBitmap -> // ✅ receive bitmap
                         downloadedBitmap = resultBitmap
                         if (resultBitmap != null) {
@@ -149,8 +166,20 @@ fun CameraPreview(navController: NavController) {
             Text("Capture")
         }
     }
-
+    var permission by remember { mutableStateOf(false) }
+    val getPermissionUser = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()  // ✅ multiple
+    ) { permissions ->
+        permission = permissions[android.Manifest.permission.CAMERA] == true  // ✅ check camera specifically
+    }
     LaunchedEffect(Unit) {
+        getPermissionUser.launch(                                         // ✅ launch array
+            arrayOf(
+                android.Manifest.permission.CAMERA,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
@@ -188,11 +217,33 @@ fun saveImageToGallery(
         Log.d("Gallery", "Image saved: $filename")
     }
 }
-
+fun saveLocationToExif(
+    context: Context,
+    uri: android.net.Uri,
+    latitude: Double,
+    longitude: Double
+) {
+    try {
+        context.contentResolver.openFileDescriptor(uri, "rw")?.use { pfd ->
+            val exif = androidx.exifinterface.media.ExifInterface(pfd.fileDescriptor)
+            exif.setGpsInfo(
+                android.location.Location("").also {
+                    it.latitude = latitude
+                    it.longitude = longitude
+                }
+            )
+            exif.saveAttributes()
+            Log.d("EXIF", "Location saved: lat=$latitude, lon=$longitude")
+        }
+    } catch (e: Exception) {
+        Log.e("EXIF", "Failed to save location to EXIF: ${e.message}")
+    }
+}
 fun capturePhoto(
     context: Context,
     imageCapture: ImageCapture,
     scope: CoroutineScope,
+    location: android.location.Location?,
     onUploadSuccess: (String, android.graphics.Bitmap?) -> Unit // ✅ bitmap as param
 ) {
     val contentValues = ContentValues().apply {
@@ -218,7 +269,6 @@ fun capturePhoto(
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 Toast.makeText(context, "Photo saved!", Toast.LENGTH_SHORT).show()
                 val uri = outputFileResults.savedUri ?: return
-
                 scope.launch(Dispatchers.IO) {
                     val bitmap = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                         val source = android.graphics.ImageDecoder.createSource(context.contentResolver, uri)
@@ -227,10 +277,15 @@ fun capturePhoto(
                         @Suppress("DEPRECATION")
                         MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
                     }
-                    val filename = uri.lastPathSegment ?: "image.jpg" // ✅ filename from URI
+                    val filename = uri.lastPathSegment ?: "image.jpg"
+
+                    // ✅ Save location to image EXIF metadata
+                    location?.let {
+                        saveLocationToExif(context, uri, it.latitude, it.longitude)
+                    }
 
                     withContext(Dispatchers.Main) {
-                        onUploadSuccess(filename, bitmap) // ✅ pass both
+                        onUploadSuccess(filename, bitmap)
                     }
                 }
             }
