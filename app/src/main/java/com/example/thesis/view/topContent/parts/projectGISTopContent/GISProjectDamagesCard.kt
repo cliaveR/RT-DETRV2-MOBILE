@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.sp
 
 import com.arcgismaps.mapping.view.GraphicsOverlay
 import com.arcgismaps.toolkit.geoviewcompose.MapView
-import com.example.thesis.Map.MapUtils
-import com.example.thesis.Map.MapUtils.createMap
+import com.example.thesis.model.`object`.MapUtils
+import com.example.thesis.model.`object`.MapUtils.createMap
 
 data class RoadDamage(
     val longitude: Double,

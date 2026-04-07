@@ -47,6 +47,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 @Composable
 fun CameraScreen(navController: NavController) {
@@ -193,7 +195,7 @@ fun capturePhoto(
     context: Context,
     imageCapture: ImageCapture,
     scope: CoroutineScope,
-    onUploadSuccess: (String, android.graphics.Bitmap?) -> Unit // ✅ bitmap as param
+    onUploadSuccess: (String, android.graphics.Bitmap?) -> Unit
 ) {
     val contentValues = ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, "${System.currentTimeMillis()}.jpg")
@@ -220,17 +222,56 @@ fun capturePhoto(
                 val uri = outputFileResults.savedUri ?: return
 
                 scope.launch(Dispatchers.IO) {
-                    val bitmap = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                        val source = android.graphics.ImageDecoder.createSource(context.contentResolver, uri)
-                        android.graphics.ImageDecoder.decodeBitmap(source)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-                    }
-                    val filename = uri.lastPathSegment ?: "image.jpg" // ✅ filename from URI
+                    try {
+                        // Read image bytes from URI
+                        val imageBytes = context.contentResolver
+                            .openInputStream(uri)?.readBytes() ?: return@launch
+                        val filename = "${System.currentTimeMillis()}.jpg"
 
-                    withContext(Dispatchers.Main) {
-                        onUploadSuccess(filename, bitmap) // ✅ pass both
+                        // Send to Spring Boot /api/upload/visualize
+                        val client = okhttp3.OkHttpClient.Builder()
+                            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                            .build()
+
+                        val requestBody = okhttp3.MultipartBody.Builder()
+                            .setType(okhttp3.MultipartBody.FORM)
+                            .addFormDataPart(
+                                "image",
+                                filename,
+                                imageBytes.toRequestBody(
+                                    "image/jpeg".toMediaTypeOrNull(),
+                                    0,
+                                    imageBytes.size
+                                )
+                            )
+                            .build()
+
+                        val request = okhttp3.Request.Builder()
+                            .url("http://13.215.193.229:8080/api/upload/visualize")
+                            .post(requestBody)
+                            .build()
+
+                        val response = client.newCall(request).execute()
+
+                        if (response.isSuccessful) {
+                            val responseBytes = response.body?.bytes()
+                            val resultBitmap = responseBytes?.let {
+                                android.graphics.BitmapFactory.decodeByteArray(it, 0, it.size)
+                            }
+                            withContext(Dispatchers.Main) {
+                                onUploadSuccess(filename, resultBitmap)
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                onUploadSuccess(filename, null)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("Upload", "Failed: ${e.message}")
+                        withContext(Dispatchers.Main) {
+                            onUploadSuccess("error", null)
+                        }
                     }
                 }
             }

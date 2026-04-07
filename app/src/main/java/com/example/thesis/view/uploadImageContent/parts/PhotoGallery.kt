@@ -40,7 +40,7 @@ fun PhotoGallery(
                 fontSize = 18.sp,
                 modifier = Modifier.weight(1f)
             )
-            TextButton(onClick = { /* system picker — wire up later */ }) {
+            TextButton(onClick = {  }) {
                 Text(
                     text = "Open Gallery",
                     color = Color(0xFF0084FF),

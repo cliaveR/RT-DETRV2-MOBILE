@@ -8,21 +8,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.arcgismaps.mapping.view.GraphicsOverlay
 import com.arcgismaps.toolkit.geoviewcompose.MapView
-import com.example.thesis.Map.MapUtils
+import com.example.thesis.model.`object`.MapUtils
 import com.arcgismaps.Color as ArcColor
 
 
 
-data class RoadDamage(
-    val longitude: Double,
-    val latitude: Double,
-    val type: String, // e.g., "Pothole", "Crack"
-    val severity: Int // 1, 2, or 3
-)
+
 
 @Preview
 @Composable
-fun MapView(modifier: Modifier = Modifier){
+fun MapViewScreen(modifier: Modifier = Modifier){
 
     val map = remember { MapUtils.createMap() }
 
