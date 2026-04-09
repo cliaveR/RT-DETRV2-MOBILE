@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.thesis.view.middleContent.MapContent
-import com.example.thesis.view.slideUp.SlideUpContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +30,6 @@ fun MapPage(navController: NavHostController) {
         sheetDragHandle = { BottomSheetDefaults.DragHandle() },
         sheetContent = {
 
-            SlideUpContent()
         }
     ) { innerPadding ->
         Box(

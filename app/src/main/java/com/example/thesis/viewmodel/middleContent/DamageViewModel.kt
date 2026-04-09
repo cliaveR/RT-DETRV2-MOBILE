@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.update
 import com.example.thesis.model.data.Project
 import java.time.LocalDateTime
 
-class ProjectViewModel : ViewModel() {
+class DamageViewModel : ViewModel() {
 
     private val _projects = MutableStateFlow<List<Project>>(emptyList())
     val projects: StateFlow<List<Project>> = _projects
@@ -20,17 +20,17 @@ class ProjectViewModel : ViewModel() {
         _projects.value = listOf(
             Project(
                 id = "1",
-                name = "AI Detection System",
+                name = "Picture 1",
                 lastOpened = LocalDateTime.now().minusDays(1)
             ),
             Project(
                 id = "2",
-                name = "Portfolio Website",
+                name = "Picture 2",
                 lastOpened = LocalDateTime.now().minusHours(3)
             ),
             Project(
                 id = "3",
-                name = "NLP Lexicon Builder",
+                name = "Picture 3",
                 lastOpened = LocalDateTime.now().minusDays(5)
             )
         ).sortedByDescending { it.lastOpened }

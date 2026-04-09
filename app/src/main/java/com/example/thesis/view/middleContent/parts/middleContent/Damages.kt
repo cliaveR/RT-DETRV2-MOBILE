@@ -14,15 +14,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.thesis.viewmodel.middleContent.ProjectViewModel
+import androidx.navigation.NavController
+import com.example.thesis.model.enumData.NAVIGATIONPATH
+import com.example.thesis.viewmodel.middleContent.DamageViewModel
 
-@Preview(showBackground = true)
 @Composable
-fun Projects(
-    projectViewModel: ProjectViewModel = viewModel()
+fun Damages(
+    navController: NavController,
+    damageViewModel: DamageViewModel = viewModel()
 ) {
 
-    val projects by projectViewModel.projects.collectAsState()
+    val projects by damageViewModel.projects.collectAsState()
 
     Column(
         modifier = Modifier
@@ -65,10 +67,10 @@ fun Projects(
 
             LazyColumn {
                 items(projects) { project ->
-                    ProjectCard(
+                    DamageCard (
                         project = project,
                         onClick = {
-                            projectViewModel.openProject(project.id)
+                            navController.navigate("${NAVIGATIONPATH.DAMAGE.route}/${project.id}")
                         },
                         onEditClick = {
                             // Edit

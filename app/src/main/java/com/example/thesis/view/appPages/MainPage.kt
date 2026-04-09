@@ -23,7 +23,7 @@ fun MainPage(navController: NavController) {
                 .background(Color(0xFFF5F5F5))
         ) {
             TopContent(navController = navController)
-            MiddleContent()
+            MiddleContent(navController)
         }
 
 }

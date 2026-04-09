@@ -32,7 +32,7 @@ fun PreviewProjectCard() {
     )
 
     // Call the composable with sample data
-    ProjectCard(
+    DamageCard (
         project = sampleProject,
         onClick = {},
         onEditClick = {},
@@ -40,7 +40,7 @@ fun PreviewProjectCard() {
     )
 }
 @Composable
-fun ProjectCard(
+fun DamageCard(
     project: Project,
     onClick: () -> Unit,
     onEditClick: () -> Unit,

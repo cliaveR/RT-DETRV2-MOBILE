@@ -1,4 +1,4 @@
-package com.example.thesis.view.launchScreen
+package com.example.thesis.view.startups.launchScreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

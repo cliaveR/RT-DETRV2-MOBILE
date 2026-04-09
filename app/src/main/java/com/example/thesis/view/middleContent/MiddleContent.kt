@@ -1,9 +1,11 @@
 package com.example.thesis.view.middleContent
 
 import androidx.compose.runtime.Composable
-import com.example.thesis.view.middleContent.parts.middleContent.Projects
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.example.thesis.view.middleContent.parts.middleContent.Damages
 
 @Composable
-fun MiddleContent() {
-    Projects()
+fun MiddleContent(navController: NavController) {
+    Damages(navController)
 }

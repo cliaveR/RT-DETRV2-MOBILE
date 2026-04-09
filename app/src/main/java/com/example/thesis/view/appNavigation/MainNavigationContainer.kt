@@ -92,7 +92,6 @@ fun TopBarContent(currentRoute: String,scope: CoroutineScope,drawerState: Drawer
         val onNotify = { /* Your notification logic */ }
 
         when (currentRoute) {
-            // TODO ADD FUNCTIONALITY OF THE TOPBAR CHANGES BASED ON THE ROUTE
             NAVIGATIONPATH.MAIN.route -> HomeTopBar(
                 onMenuClick = { scope.launch { drawerState.open() } },
                 onNotify = onNotify
