@@ -25,7 +25,7 @@ fun CameraButton(navController: NavController) {
             .clip(RoundedCornerShape(12.dp))
             .background(Color.LightGray, RoundedCornerShape(12.dp))
             .clickable {
-                navController.navigate(NAVIGATIONPATH.CAMERA.route)
+                navController.navigate(NAVIGATIONPATH.PICTURE_VIDEO.route)
             }, // just like ProjectCard
         contentAlignment = Alignment.Center
     ) {

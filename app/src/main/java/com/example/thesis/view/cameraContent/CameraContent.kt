@@ -164,10 +164,10 @@ fun CameraPreview(navController: NavController) {
                 preview,
                 imageCapture
             )
+
         }, ContextCompat.getMainExecutor(context))
     }
 }
-
 fun saveImageToGallery(
     context: Context,
     bitmap: android.graphics.Bitmap,
