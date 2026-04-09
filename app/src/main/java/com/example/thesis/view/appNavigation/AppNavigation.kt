@@ -1,5 +1,6 @@
 package com.example.thesis.view.appNavigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,7 +15,6 @@ import com.example.thesis.view.appPages.MapPage
 import com.example.thesis.view.cameraContent.CameraScreen
 import com.example.thesis.view.cameraContent.videoContent.PhotoScreen
 import com.example.thesis.view.cameraContent.videoContent.VideoScreen
-import com.example.thesis.view.middleContent.ProjectDetailPage
 import com.example.thesis.view.popUpContent.PopUpContent
 import com.example.thesis.view.startups.launchScreen.LaunchScreenView
 import com.example.thesis.view.topContent.parts.topContent.PictureCameraButtons
@@ -78,11 +78,13 @@ fun AppNavigation(navController: NavHostController) {
 
         composable ("${NAVIGATIONPATH.DAMAGE.route}/{picture_id}"){
             backstackEntry ->
-            val pictureId = backstackEntry.arguments?.getString("picture_id")
+            val imageUri = backstackEntry.arguments
+                ?.getString("picture_id")
+                ?.let { Uri.parse(it) }
             MainNavigationContainer(
                 currentRoute,navController
             ) {
-                PopUpContent()
+                PopUpContent(imageUri,navController)
             }
         }
 

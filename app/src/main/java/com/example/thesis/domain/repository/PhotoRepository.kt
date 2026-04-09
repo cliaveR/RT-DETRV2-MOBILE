@@ -9,7 +9,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import okio.IOException
 import java.io.OutputStream
 import kotlin.coroutines.resume
 
@@ -17,12 +16,13 @@ class PhotoRepository(private val context: Context) {
 
     private val client = OkHttpClient()
 
-    suspend fun uploadAndSaveVisualized(uri: Uri): Boolean =
+    // 🔥 1. Upload + save → return Uri
+    suspend fun uploadAndSaveVisualized(uri: Uri): Uri? =
         suspendCancellableCoroutine { continuation ->
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
                 val bytes = inputStream?.readBytes()
-                    ?: throw IOException("Could not read image")
+                    ?: throw Exception("Could not read image")
                 inputStream.close()
 
                 val requestBody = MultipartBody.Builder()
@@ -35,52 +35,49 @@ class PhotoRepository(private val context: Context) {
                     .build()
 
                 val request = Request.Builder()
-                    .url("http://10.0.2.2:8080/api/upload/visualize") // IMPORTANT
+                    .url("http://10.0.2.2:8080/api/upload/visualize")
                     .post(requestBody)
                     .build()
 
                 client.newCall(request).enqueue(object : Callback {
 
-                    override fun onFailure(call: Call, e: IOException) {
-                        e.printStackTrace() // 🔥 shows exact error in Logcat
-                        Log.d("PICTURE", "${e.printStackTrace()}")
-                        if (continuation.isActive) continuation.resume(false)
+                    override fun onFailure(call: Call, e: java.io.IOException) {
+                        e.printStackTrace()
+                        Log.d("PICTURE", "Upload failed: ${e.message}")
+                        if (continuation.isActive) continuation.resume(null)
                     }
 
                     override fun onResponse(call: Call, response: Response) {
                         response.use {
-                            Log.d("PICTURE", "Response code: ${it.code}}")
+                            Log.d("PICTURE", "Response code: ${it.code}")
 
                             if (!it.isSuccessful) {
-                                val errorBody = it.body?.string()
-                                Log.d("PICTURE", "$errorBody")
-
-                                // 🔥 backend error message
+                                Log.d("PICTURE", "Error: ${it.body?.string()}")
+                                continuation.resume(null)
+                                return
                             }
-                            if (it.isSuccessful) {
-                                val imageBytes = it.body?.bytes()
-                                Log.d("PICTURE", "Received bytes: ${imageBytes?.size}")
-                                if (imageBytes != null) {
-                                    val saved = saveImageToGallery(imageBytes)
-                                    continuation.resume(saved)
-                                } else {
-                                    Log.d("PICTURE", "Image bytes are NULL")
-                                    continuation.resume(false)
-                                }
+
+                            val imageBytes = it.body?.bytes()
+
+                            if (imageBytes != null) {
+                                val savedUri = saveImageToGallery(imageBytes)
+                                continuation.resume(savedUri)
                             } else {
-                                continuation.resume(false)
+                                Log.d("PICTURE", "Image bytes NULL")
+                                continuation.resume(null)
                             }
                         }
                     }
                 })
 
             } catch (e: Exception) {
-                if (continuation.isActive) continuation.resume(false)
+                Log.d("PICTURE", "Exception: ${e.message}")
+                if (continuation.isActive) continuation.resume(null)
             }
         }
 
-    // 🔥 THIS saves image to gallery
-    private fun saveImageToGallery(bytes: ByteArray): Boolean {
+    // 🔥 2. Save image → return Uri
+    private fun saveImageToGallery(bytes: ByteArray): Uri? {
         return try {
             val filename = "Thesis_Processed_${System.currentTimeMillis()}.jpg"
 
@@ -93,7 +90,7 @@ class PhotoRepository(private val context: Context) {
             val uri = context.contentResolver.insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 contentValues
-            ) ?: return false
+            ) ?: return null
 
             val outputStream: OutputStream? =
                 context.contentResolver.openOutputStream(uri)
@@ -103,9 +100,40 @@ class PhotoRepository(private val context: Context) {
                 it.flush()
             }
 
-            true
+            uri // ✅ return URI (IMPORTANT)
         } catch (e: Exception) {
-            false
+            Log.d("PICTURE", "Save failed: ${e.message}")
+            null
         }
+    }
+
+    // 🔥 3. Get latest image from your folder
+    fun getLatestImageFromGallery(): Uri? {
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+
+        val selection = "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?"
+        val selectionArgs = arrayOf("%Pictures/ThesisApp%")
+
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+        val cursor = context.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val id = it.getLong(0)
+                return Uri.withAppendedPath(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    id.toString()
+                )
+            }
+        }
+
+        return null
     }
 }

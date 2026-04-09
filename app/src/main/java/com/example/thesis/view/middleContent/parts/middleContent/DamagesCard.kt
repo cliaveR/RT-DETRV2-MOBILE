@@ -1,5 +1,6 @@
 package com.example.thesis.view.middleContent.parts.middleContent
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,34 +16,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import java.time.format.DateTimeFormatter
 import com.example.thesis.model.data.Project
 import java.time.LocalDateTime
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewProjectCard() {
-    // Sample project
-    val sampleProject = Project(
-        id="1",
-        name = "My Sample Project",
-        lastOpened = LocalDateTime.now() // just for demo
-    )
-
-    // Call the composable with sample data
-    DamageCard (
-        project = sampleProject,
-        onClick = {},
-        onEditClick = {},
-        onDeleteClick = {}
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewProjectCard() {
+//    // Sample project
+//    val sampleProject = Project(
+//        id="1",
+//        name = "My Sample Project",
+//        lastOpened = LocalDateTime.now() // just for demo
+//    )
+//
+//    // Call the composable with sample data
+//    DamageCard (
+//        project = sampleProject,
+//        onClick = {},
+//        onEditClick = {},
+//        onDeleteClick = {}
+//    )
+//}
 @Composable
 fun DamageCard(
     project: Project,
     onClick: () -> Unit,
+    imageUri: Uri?,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -69,20 +73,29 @@ fun DamageCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(
-                        color=Color.LightGray,
-                        RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Image,
-                    contentDescription = null
-                )
-            }
+
+
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.LightGray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (imageUri != null) {
+                            AsyncImage(
+                                model = imageUri,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Outlined.Image,
+                                contentDescription = null
+                            )
+                        }
+                    }
 
             Spacer(modifier = Modifier.width(16.dp))
 

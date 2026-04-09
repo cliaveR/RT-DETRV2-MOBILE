@@ -37,16 +37,15 @@ class PhotoViewModel : ViewModel() {
                     isUploading = true
 
                     try {
-                        val success = repo.uploadAndSaveVisualized(uri)
+                        val savedUri = repo.uploadAndSaveVisualized(uri)
 
                         onResult(
-                            if (success) {
+                            if (savedUri != null) {
                                 "Processed image saved to Gallery ✅"
                             } else {
                                 "Upload/processing failed ❌"
                             }
                         )
-
                     } catch (e: Exception) {
                         onResult("Error: ${e.message}")
                     }
