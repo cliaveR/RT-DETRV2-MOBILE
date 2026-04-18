@@ -1,9 +1,9 @@
 package com.example.thesis.view.appNavigation
 
+import android.Manifest
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,103 +21,120 @@ import com.example.thesis.view.topContent.parts.topContent.PictureCameraButtons
 import com.example.thesis.view.uploadImageContent.UploadImagePage
 import kotlinx.coroutines.delay
 
-
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    val currentBackStack by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStack?.destination?.route ?: NAVIGATIONPATH.SPLASH.route
+
+    val currentBackStack = navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStack.value?.destination?.route
+        ?: NAVIGATIONPATH.SPLASH.route
 
     NavHost(
         navController = navController,
         startDestination = NAVIGATIONPATH.SPLASH.route
-    ){
-        composable (NAVIGATIONPATH.SPLASH.route){
-            LaunchScreenView()
-            LaunchedEffect(Unit) {
-                delay(3000)
-                navController.navigate(NAVIGATIONPATH.MAIN.route){
-                    popUpTo(NAVIGATIONPATH.MAIN.route){inclusive = true}
+    ) {
+
+        composable(NAVIGATIONPATH.SPLASH.route) {
+
+            PermissionGateWay(
+                permissions = listOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                rationale = "Location access is required to detect your current location."
+            ) {
+
+                LaunchScreenView()
+
+                LaunchedEffect(Unit) {
+                    delay(3000)
+                    navController.navigate(NAVIGATIONPATH.MAIN.route) {
+                        popUpTo(NAVIGATIONPATH.SPLASH.route) {
+                            inclusive = true
+                        }
+                    }
                 }
             }
         }
 
-        composable (NAVIGATIONPATH.MAIN.route){
+        composable(NAVIGATIONPATH.MAIN.route) {
             MainNavigationContainer(
-                currentRoute,navController
+                currentRoute,
+                navController
             ) {
-                MainPage(
-                    navController = navController
-                )
+                MainPage(navController)
             }
         }
-        composable (NAVIGATIONPATH.MAP.route){
+
+        composable(NAVIGATIONPATH.MAP.route) {
             MainNavigationContainer(
-                currentRoute,navController
+                currentRoute,
+                navController
             ) {
-                MapPage(
-                    navController = navController
-                )
+                MapPage(navController)
             }
         }
-        composable (NAVIGATIONPATH.RESULTS.route){
+
+        composable(NAVIGATIONPATH.RESULTS.route) {
             MainNavigationContainer(
-                currentRoute,navController
+                currentRoute,
+                navController
             ) {
-                MainPage(
-                    navController = navController
-                )
+                MainPage(navController)
             }
         }
-        composable (NAVIGATIONPATH.UPLOAD.route){
+
+        composable(NAVIGATIONPATH.UPLOAD.route) {
             MainNavigationContainer(
-                currentRoute,navController
+                currentRoute,
+                navController
             ) {
                 UploadImagePage(navController)
             }
         }
 
-        composable ("${NAVIGATIONPATH.DAMAGE.route}/{picture_id}"){
-            backstackEntry ->
+        composable("${NAVIGATIONPATH.DAMAGE.route}/{picture_id}") { backstackEntry ->
             val imageUri = backstackEntry.arguments
                 ?.getString("picture_id")
                 ?.let { Uri.parse(it) }
+
             MainNavigationContainer(
-                currentRoute,navController
+                currentRoute,
+                navController
             ) {
-                PopUpContent(imageUri,navController)
+                PopUpContent(imageUri, navController)
             }
         }
 
-        composable (NAVIGATIONPATH.CAMERA.route){
+        composable(NAVIGATIONPATH.CAMERA.route) {
             CameraScreen(navController)
         }
 
-        composable (NAVIGATIONPATH.PICTURE_VIDEO.route){
+        composable(NAVIGATIONPATH.PICTURE_VIDEO.route) {
             PictureCameraButtons(navController)
         }
-        composable (NAVIGATIONPATH.VIDEO.route) {
+
+        composable(NAVIGATIONPATH.VIDEO.route) {
             PermissionGateWay(
                 permissions = listOf(
-                    android.Manifest.permission.CAMERA,
-                    android.Manifest.permission.RECORD_AUDIO
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO
                 ),
-                rationale = "Camera and Audio are required for your thesis video recording."
+                rationale = "Camera and Audio are required for video recording."
             ) {
-                VideoScreen(navController=navController)
+                VideoScreen(navController)
             }
         }
-        composable (NAVIGATIONPATH.PICTURE.route) {
+
+        composable(NAVIGATIONPATH.PICTURE.route) {
             PermissionGateWay(
                 permissions = listOf(
-                    android.Manifest.permission.CAMERA,
-                    android.Manifest.permission.RECORD_AUDIO
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO
                 ),
-                rationale = "Camera and Audio are required for your thesis video recording."
+                rationale = "Camera and Audio are required for taking photos."
             ) {
-                PhotoScreen(navController=navController)
+                PhotoScreen(navController = navController)
             }
         }
     }
-
 }
-
