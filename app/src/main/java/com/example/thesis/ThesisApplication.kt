@@ -8,6 +8,6 @@ class ThesisApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-    ArcGISEnvironment.apiKey = ApiKey.create("AAPTxy8BH1VEsoebNVZXo8HurJPXzMSQBTGd-8NWrv87roChenBvctCxKS5BbOykPkM_mTN6I4CgDctyp6f_4gCeWlXpM0BDXLRXEj3lTNdFGVJHo18jzGCKa5M9ciZLhRyTk0ETgPFE12P2FXsnQ4oiD-DZKF09Rtgbb1-GP3PZyie53EmR5-KuHH7k37Jw7kYUDMWEAg7BJytAMIGBSK27G6H3NndSagT2qnIvWoa-TF8.AT1_UU9U6P0U")
+    ArcGISEnvironment.apiKey = ApiKey.create("AAPTaM41L9JAKJxnMdUuthpfo2Q..gHu1r4Y5MjA4k1Gc7YZM2duZlJCequSnWSYA8jcAHXV7zmBjeoiq8A2LDorJ6var5a-VLKvQ-XYSiB0s0wugJfo0eOG4ru9kq6quNHS0rJNFkVourDFrbX9JQB2x6xwoiJMW0fLc1LLWMhWranWR_S9o2bk-swS-zHIfZfKuiO_U9OpKAQ-h5EXbKUmKtXKtzooVQ-LyyqfEQplKDwUCXKmxy4cSGrlfLgfmszubth_Sk41iUdlDRKTmq5M.AT1_UU9U6P0U")
     }
 }

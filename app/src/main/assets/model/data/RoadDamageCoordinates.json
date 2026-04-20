@@ -1,0 +1,12 @@
+{
+  "viewpoint": {
+    "latitude": 17.589,
+    "longitude": 120.387,
+    "scale": 50000.0
+  },
+  "locations": [
+    { "longitude": 120.371082, "latitude": 17.595492 },
+    { "longitude": 120.399521, "latitude": 17.581936 },
+    { "longitude": 120.389398, "latitude": 17.589375 }
+  ]
+}

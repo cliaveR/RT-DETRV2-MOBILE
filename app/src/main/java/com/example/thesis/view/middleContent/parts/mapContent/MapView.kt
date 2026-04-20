@@ -5,41 +5,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.arcgismaps.mapping.view.GraphicsOverlay
 import com.arcgismaps.toolkit.geoviewcompose.MapView
-import com.example.thesis.model.`object`.MapUtils
+import com.example.thesis.viewmodel.middleContent.MapUtils
 import com.arcgismaps.Color as ArcColor
-
-
-
-
 
 @Preview
 @Composable
-fun MapViewScreen(modifier: Modifier = Modifier){
+fun MapViewScreen(modifier: Modifier = Modifier) {
 
-    val map = remember { MapUtils.createMap() }
+    val context = LocalContext.current
+    val map = remember { MapUtils.createMap(context) }
 
     val graphicsOverlay = remember {
-        GraphicsOverlay().apply {
-            graphics.addAll(
-                listOf(
-                    MapUtils.createPointGraphic(120.371082, 17.595492, ArcColor.red),
-                    MapUtils.createPointGraphic(120.399521, 17.581936, ArcColor.green),
-                    MapUtils.createPointGraphic(120.389398, 17.589375, ArcColor.red)
-                )
-            )
-        }
+        MapUtils.createGraphicsOverlayFromAssets(context)
     }
 
-
-
-Box(modifier = modifier.fillMaxSize()) {
-    MapView(
-        modifier = Modifier.fillMaxSize(),
-        arcGISMap = map,
-        graphicsOverlays = listOf(graphicsOverlay)
-    )
-}
+    Box(modifier = modifier.fillMaxSize()) {
+        MapView(
+            modifier = Modifier.fillMaxSize(),
+            arcGISMap = map,
+            graphicsOverlays = listOf(graphicsOverlay)
+        )
+    }
 }
