@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,11 +30,10 @@ fun Damages(
     val context = LocalContext.current
     val repository = remember { PhotoRepository(context) }
 
-    val projects by damageViewModel.projects.collectAsState()
-    val latestImage by damageViewModel.latestImage.collectAsState()
+    val damageImages by damageViewModel.damageImages.collectAsState()
 
     LaunchedEffect(Unit) {
-        damageViewModel.loadLatestImage(repository)
+        damageViewModel.loadDamageImages(repository)
     }
 
     Column(
@@ -49,7 +47,7 @@ fun Damages(
     ) {
 
         Text(
-            text = "Projects",
+            text = "Damage Images",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Left,
@@ -59,7 +57,7 @@ fun Damages(
                 .padding(bottom = 8.dp)
 
         )
-        if (projects.isEmpty()) {
+        if (damageImages.isEmpty()) {
 
             Box(
                 modifier = Modifier
@@ -68,7 +66,7 @@ fun Damages(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No Projects",
+                    text = "No Images Yet",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray, // Gray looks better for empty states
@@ -78,16 +76,13 @@ fun Damages(
         } else {
 
             LazyColumn {
-                items(projects) { project ->
+                items(damageImages) { image ->
                     DamageCard(
-                        project = project,
-                        imageUri = latestImage,
+                        image = image,
                         onClick = {
-                            latestImage?.let {
-                                navController.navigate(
-                                    "${NAVIGATIONPATH.DAMAGE.route}/${Uri.encode(it.toString())}"
-                                )
-                            }
+                            navController.navigate(
+                                "${NAVIGATIONPATH.DAMAGE.route}/${Uri.encode(image.uri.toString())}"
+                            )
                         },
                         onEditClick = {},
                         onDeleteClick = {}

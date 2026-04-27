@@ -1,13 +1,11 @@
 package com.example.thesis.view.middleContent.parts.middleContent
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
@@ -17,12 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.thesis.model.data.DamageImageItem
 import java.time.format.DateTimeFormatter
-import com.example.thesis.model.data.Project
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.ZoneId
 
 //@Preview(showBackground = true)
 //@Composable
@@ -44,9 +42,8 @@ import java.time.LocalDateTime
 //}
 @Composable
 fun DamageCard(
-    project: Project,
+    image: DamageImageItem,
     onClick: () -> Unit,
-    imageUri: Uri?,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -54,6 +51,12 @@ fun DamageCard(
     var expanded by remember { mutableStateOf(false) }
 
     val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy • hh:mm a")
+    val formattedDate = image.dateAddedSeconds?.let {
+        Instant.ofEpochSecond(it)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+            .format(formatter)
+    } ?: "Unknown date"
 
     Card(
         modifier = Modifier
@@ -75,27 +78,20 @@ fun DamageCard(
 
 
 
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (imageUri != null) {
-                            AsyncImage(
-                                model = imageUri,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Outlined.Image,
-                                contentDescription = null
-                            )
-                        }
-                    }
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = image.uri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -103,11 +99,11 @@ fun DamageCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = project.name,
+                    text = image.displayName,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = project.lastOpened.format(formatter),
+                    text = formattedDate,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

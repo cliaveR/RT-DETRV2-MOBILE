@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.example.thesis.view.PermissionContent.PermissionGateWay
 import com.example.thesis.view.middleContent.MapContent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,22 +28,28 @@ fun MapPage(navController: NavHostController) {
         sheetPeekHeight = 190.dp,
         sheetContainerColor = Color.White,
         sheetDragHandle = { BottomSheetDefaults.DragHandle() },
-        sheetContent = {
-
-        }
+        sheetContent = {}
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            MapContent()
+            PermissionGateWay(
+                permissions = listOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                rationale = "Location access is required to track and center your real-time position on the map."
+            ) {
+                MapContent()
+            }
         }
     }
 }
 
 @Composable
 @Preview
-fun showMapPage(navHostController: NavHostController){
+fun showMapPage(navHostController: NavHostController) {
     MapPage(navHostController)
 }

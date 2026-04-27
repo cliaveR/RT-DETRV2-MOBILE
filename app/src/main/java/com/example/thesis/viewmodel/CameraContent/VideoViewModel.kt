@@ -1,46 +1,83 @@
-package com.example.thesis.viewmodel.CameraContent;
+package com.example.thesis.viewmodel.CameraContent
 
 import android.Manifest
-import android.net.Uri
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.thesis.domain.camera.CameraManager
-import java.net.URI
+import com.example.thesis.domain.location.CurrentLocationProvider
 import com.example.thesis.domain.repository.VideoRepository
+import com.example.thesis.model.data.mapTracking.GeoCoordinate
+import com.example.thesis.model.data.mapTracking.VideoCaptureCoordinates
+import kotlinx.coroutines.launch
 import java.io.File
 
-class VideoViewModel(private val repository: VideoRepository) : ViewModel() {
+class VideoViewModel(
+    private val repository: VideoRepository,
+    private val locationProvider: CurrentLocationProvider
+) : ViewModel() {
+
     var isRecording by mutableStateOf(false)
     var isProcessing by mutableStateOf(false)
     var processedVideoFile by mutableStateOf<File?>(null)
 
+    private var recordingStartCoordinate: GeoCoordinate? = null
+    private var recordingEndCoordinate: GeoCoordinate? = null
+
+    private companion object {
+        const val TAG = "VideoVM"
+    }
+
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun toggleRecording(cameraManager: CameraManager) {
         if (isRecording) {
-            cameraManager.stopRecording()
+            viewModelScope.launch {
+                // Capture end coordinate right before stopRecording().
+                recordingEndCoordinate = locationProvider.getCurrentCoordinateOrNull()
+                Log.d(TAG, "Video END coordinate=$recordingEndCoordinate")
+                cameraManager.stopRecording()
+                isRecording = false
+            }
         } else {
-            cameraManager.startRecording { uri ->
-                uri?.let {
-                    isProcessing = true
-                    repository.uploadVideo(it) { success, resultFile ->
-                        isProcessing = false
-                        if (success) {
-                            processedVideoFile = resultFile
+            viewModelScope.launch {
+                // Capture start coordinate when recording starts.
+                recordingStartCoordinate = locationProvider.getCurrentCoordinateOrNull()
+                recordingEndCoordinate = null
+                Log.d(TAG, "Video START coordinate=$recordingStartCoordinate")
+
+                cameraManager.startRecording { uri ->
+                    uri?.let {
+                        isProcessing = true
+
+                        val metadata = VideoCaptureCoordinates(
+                            start = recordingStartCoordinate,
+                            end = recordingEndCoordinate
+                        )
+
+                        repository.uploadVideo(it, metadata) { success, resultFile ->
+                            isProcessing = false
+                            if (success) processedVideoFile = resultFile
+                            recordingStartCoordinate = null
+                            recordingEndCoordinate = null
                         }
                     }
                 }
+                isRecording = true
             }
         }
-        isRecording = !isRecording
     }
 }
 
-class VideoViewModelFactory(private val repository: VideoRepository) : ViewModelProvider.Factory {
+class VideoViewModelFactory(
+    private val repository: VideoRepository,
+    private val locationProvider: CurrentLocationProvider
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return VideoViewModel(repository) as T
+        return VideoViewModel(repository, locationProvider) as T
     }
 }

@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.volley)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.ui.graphics)
+    implementation(libs.play.services.location)
     val camerax_version = "1.5.3"
     implementation("androidx.camera:camera-core:$camerax_version")
     implementation("androidx.camera:camera-camera2:$camerax_version") // ✅ this is what's missing
@@ -76,7 +77,9 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
  implementation("androidx.activity:activity-compose:1.12.4")
  implementation("androidx.compose.material3:material3:1.4.0")
-
+    implementation("com.google.maps.android:maps-compose:6.1.0")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation(libs.arcgis.maps.kotlin)
     implementation(platform(libs.arcgis.maps.kotlin.toolkit.bom))
     implementation(libs.arcgis.maps.kotlin.toolkit.geoview.compose)

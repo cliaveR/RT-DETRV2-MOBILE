@@ -22,7 +22,11 @@ import com.example.thesis.R
 
 
 @Composable
-fun SidebarContent() {
+fun SidebarContent(
+    onGoMain: () -> Unit,
+    onGoMap: () -> Unit,
+    onClose: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +39,9 @@ fun SidebarContent() {
             modifier = Modifier.size(180.dp)
         )
         Spacer(modifier = Modifier.height(40.dp))
-        NavigationItem(label = "About us") { /* Navigate */ }
+        NavigationItem(label = "Main page", onClick = onGoMain)
+        NavigationItem(label = "Map page", onClick = onGoMap)
+        NavigationItem(label = "Close sidebar", onClick = onClose)
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = "Copyright © 2026",

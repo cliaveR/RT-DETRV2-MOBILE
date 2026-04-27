@@ -37,6 +37,7 @@ fun AppNavigation(navController: NavHostController) {
                 delay(3000)
                 navController.navigate(NAVIGATIONPATH.MAIN.route){
                     popUpTo(NAVIGATIONPATH.MAIN.route){inclusive = true}
+                    launchSingleTop = true
                 }
             }
         }
@@ -99,7 +100,8 @@ fun AppNavigation(navController: NavHostController) {
             PermissionGateWay(
                 permissions = listOf(
                     android.Manifest.permission.CAMERA,
-                    android.Manifest.permission.RECORD_AUDIO
+                    android.Manifest.permission.RECORD_AUDIO,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
                 ),
                 rationale = "Camera and Audio are required for your thesis video recording."
             ) {
@@ -110,7 +112,9 @@ fun AppNavigation(navController: NavHostController) {
             PermissionGateWay(
                 permissions = listOf(
                     android.Manifest.permission.CAMERA,
-                    android.Manifest.permission.RECORD_AUDIO
+                    android.Manifest.permission.RECORD_AUDIO,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+
                 ),
                 rationale = "Camera and Audio are required for your thesis video recording."
             ) {
@@ -118,6 +122,6 @@ fun AppNavigation(navController: NavHostController) {
             }
         }
     }
-
+//tag:LocService | tag:LocVM | tag:LocArcUI | tag:LocPerm
 }
 

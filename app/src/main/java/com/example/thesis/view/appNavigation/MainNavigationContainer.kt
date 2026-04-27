@@ -1,5 +1,6 @@
 package com.example.thesis.view.appNavigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.thesis.R
 import com.example.thesis.model.enumData.NAVIGATIONPATH
 import com.example.thesis.view.appNavigation.sideBarContent.SidebarContent
@@ -29,7 +31,7 @@ import kotlinx.coroutines.launch
 fun MainNavigationContainer(
     currentRoute:String,
     navController: NavController,
-    content: @Composable () -> Unit // THIS IS THE CONTENT OF THE PAGES IT JUST PUSH HERE FOR THE SCAFFOLDING
+    content: @Composable () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -42,9 +44,14 @@ fun MainNavigationContainer(
         NAVIGATIONPATH.MAP.route -> 1
         else -> 0
     }
+
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = true,
+            gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
@@ -53,7 +60,27 @@ fun MainNavigationContainer(
                 drawerContainerColor = Color.White,
                 drawerShape = RectangleShape
             ) {
-                SidebarContent()
+                SidebarContent(
+                    onGoMain = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(NAVIGATIONPATH.MAIN.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onGoMap = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(NAVIGATIONPATH.MAP.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onClose = {
+                        scope.launch { drawerState.close() }
+                    }
+                )
             }
         }
     ) {
@@ -64,10 +91,16 @@ fun MainNavigationContainer(
                 if (showBottomBar) {
                     BottomNavBar(
                         selectedTab = selectedTab,
-                        onTabSelected = {
-                            tab -> when(tab){
-                            0 -> navController.navigate(NAVIGATIONPATH.MAIN.route)
-                            1 -> navController.navigate(NAVIGATIONPATH.MAP.route)
+                        onTabSelected = { tab ->
+                            val destination = when (tab) {
+                                0 -> NAVIGATIONPATH.MAIN.route
+                                1 -> NAVIGATIONPATH.MAP.route
+                                else -> NAVIGATIONPATH.MAIN.route
+                            }
+                            navController.navigate(destination) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
                             }
                         }
                     )
@@ -104,4 +137,3 @@ fun TopBarContent(currentRoute: String,scope: CoroutineScope,drawerState: Drawer
         }
     }
 }
-

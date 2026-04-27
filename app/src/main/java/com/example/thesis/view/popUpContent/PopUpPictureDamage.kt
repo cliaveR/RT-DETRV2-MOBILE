@@ -20,11 +20,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.thesis.model.data.mapTracking.PhotoUploadResult
 import com.example.thesis.view.popUpContent.parts.ImageDetailsCard
 import com.example.thesis.view.popUpContent.parts.PictureResultCard
 
 @Composable
-fun PopUpContent(imageUri: Uri?,navController: NavController) {
+fun PopUpContent(imageUri: Uri?, navController: NavController, result: PhotoUploadResult? = null) {
     Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
         IconButton(
             onClick = { navController.popBackStack() },
@@ -42,8 +43,9 @@ fun PopUpContent(imageUri: Uri?,navController: NavController) {
             )
         }
 
+
         PictureResultCard(imageUri)
         Spacer(modifier = Modifier.height(50.dp))
-        ImageDetailsCard()
+        ImageDetailsCard(result)
     }
 }

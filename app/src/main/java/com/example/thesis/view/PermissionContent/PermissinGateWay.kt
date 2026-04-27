@@ -1,6 +1,7 @@
 package com.example.thesis.view.PermissionContent
 
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -47,6 +48,7 @@ fun PermissionGateWay(
     ) {
         result->
         permissionGranted = result.values.all { it }
+        Log.d("LocPerm", "Permission result: $result -> granted=$permissionGranted")
     }
 
     if (permissionGranted){
@@ -68,6 +70,7 @@ fun PermissionGateWay(
                         text = "Permissions Required",
                         style = MaterialTheme.typography.headlineSmall
                     )
+
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = rationale)
                     Spacer(modifier = Modifier.height(24.dp))

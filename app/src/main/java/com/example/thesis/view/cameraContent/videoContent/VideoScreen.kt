@@ -33,7 +33,7 @@ import com.example.thesis.domain.camera.CameraManager
 import com.example.thesis.domain.repository.VideoRepository
 import com.example.thesis.viewmodel.CameraContent.VideoViewModel
 import com.example.thesis.viewmodel.CameraContent.VideoViewModelFactory
-
+import com.example.thesis.domain.location.CurrentLocationProvider
 // ui/video/VideoScreen.kt
 @SuppressLint("MissingPermission")
 @Composable
@@ -45,9 +45,13 @@ fun VideoScreen(navController: NavController) {
         VideoRepository(context, "http://10.0.2.2:8080/api/upload/video")
     }
 
-    // 2. Initialize ViewModel correctly using the Factory
+    val locationProvider = remember { CurrentLocationProvider(context) }
+
     val viewModel: VideoViewModel = viewModel(
-        factory = VideoViewModelFactory(repository)
+        factory = VideoViewModelFactory(
+            repository = repository,
+            locationProvider = locationProvider
+        )
     )
 
     val lifecycleOwner = LocalLifecycleOwner.current
