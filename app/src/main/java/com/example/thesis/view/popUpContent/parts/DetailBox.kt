@@ -18,54 +18,47 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
 @Composable
-fun DetailBox(label: String, value:String, modifier: Modifier = Modifier){
-    Card(
-        modifier = modifier
-            .height(60.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
+fun DetailBox(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = Color.Black // new optional param
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(bottom = 6.dp)
         )
-    ) {
-        Column(
+
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0)),
             modifier = Modifier
-                .fillMaxSize()
-                .padding(9.dp),
-            verticalArrangement = Arrangement.Center
+                .fillMaxWidth()
+                .height(56.dp)
         ) {
-            Text(
-                text = label,
-                style= MaterialTheme.typography.labelMedium
-            )
-
-
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFE0E0E0)
-                ),
-                modifier = Modifier.fillMaxWidth().height(56.dp)
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp).fillMaxSize(),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = value,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.Black,
-                            fontSize = 16.sp
-                        ))
-                }
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = valueColor, // use the passed color here
+                        fontSize = 14.sp
+                    )
+                )
             }
         }
     }
-
 }
 
 @Composable
 @Preview
-fun useDetailBox(){
-    DetailBox("asd","asd")
-
+fun useDetailBox() {
+    DetailBox("asd", "asd")
 }

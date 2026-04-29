@@ -43,10 +43,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.example.thesis.domain.repository.MapMarkerRepository
+import com.example.thesis.model.data.MapMarker
+import com.example.thesis.model.`object`.LocalMarkerStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+import com.google.android.gms.location.LocationServices
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
@@ -54,14 +60,14 @@ import okhttp3.RequestBody.Companion.toRequestBody
 fun CameraScreen(navController: NavController) {
     var permission by remember { mutableStateOf(false) }
 
-    val getPermissionUser = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        permission = isGranted
+    val getPermissions = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { perms ->
+        permission = perms[android.Manifest.permission.CAMERA] == true
     }
 
     LaunchedEffect(Unit) {
-        getPermissionUser.launch(android.Manifest.permission.CAMERA)
+        getPermissions.launch(arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_FINE_LOCATION))
     }
 
     if (permission) {
@@ -191,12 +197,57 @@ fun saveImageToGallery(
     }
 }
 
+// Save image to gallery and return the URI for storage in markers
+fun saveImageToGalleryAndGetUri(
+    context: Context,
+    bitmap: android.graphics.Bitmap,
+    filename: String
+): android.net.Uri? {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, "processed_$filename")
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+    }
+
+    val uri = context.contentResolver.insert(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        contentValues
+    )
+    uri?.let {
+        context.contentResolver.openOutputStream(it)?.use { outputStream ->
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, outputStream)
+        }
+        Log.d("Gallery", "Processed image saved: $filename, URI: $uri")
+    }
+    return uri
+}
+
+// Try to obtain the last known location. This may return null if location permission
+// hasn't been granted or no location is available yet.
+suspend fun fetchLastLocation(context: Context): android.location.Location? {
+    return suspendCoroutine { cont ->
+        try {
+            val client = LocationServices.getFusedLocationProviderClient(context)
+            client.lastLocation
+                .addOnSuccessListener { location ->
+                    cont.resume(location)
+                }
+                .addOnFailureListener { _ ->
+                    cont.resume(null)
+                }
+        } catch (e: Exception) {
+            cont.resume(null)
+        }
+    }
+}
+
 fun capturePhoto(
     context: Context,
     imageCapture: ImageCapture,
     scope: CoroutineScope,
     onUploadSuccess: (String, android.graphics.Bitmap?) -> Unit
 ) {
+    val markerRepository = MapMarkerRepository()
     val contentValues = ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, "${System.currentTimeMillis()}.jpg")
         put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
@@ -222,7 +273,13 @@ fun capturePhoto(
                 val uri = outputFileResults.savedUri ?: return
 
                 scope.launch(Dispatchers.IO) {
-                    try {
+                                try {
+                                    // Attempt to fetch last known location (may be null if permission not granted)
+                                    val location = try {
+                                        withContext(Dispatchers.Main) { fetchLastLocation(context) }
+                                    } catch (e: Exception) {
+                                        null
+                                    }
                         // Read image bytes from URI
                         val imageBytes = context.contentResolver
                             .openInputStream(uri)?.readBytes() ?: return@launch
@@ -234,7 +291,7 @@ fun capturePhoto(
                             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                             .build()
 
-                        val requestBody = okhttp3.MultipartBody.Builder()
+                        val requestBodyBuilder = okhttp3.MultipartBody.Builder()
                             .setType(okhttp3.MultipartBody.FORM)
                             .addFormDataPart(
                                 "image",
@@ -245,10 +302,16 @@ fun capturePhoto(
                                     imageBytes.size
                                 )
                             )
-                            .build()
+                        // include location fields if available
+                        if (location != null) {
+                            requestBodyBuilder.addFormDataPart("latitude", location.latitude.toString())
+                            requestBodyBuilder.addFormDataPart("longitude", location.longitude.toString())
+                        }
+
+                        val requestBody = requestBodyBuilder.build()
 
                         val request = okhttp3.Request.Builder()
-                            .url("http://13.215.193.229:8080/api/upload/visualize")
+                            .url("http://10.0.2.2:8080/api/upload/visualize")
                             .post(requestBody)
                             .build()
 
@@ -259,8 +322,30 @@ fun capturePhoto(
                             val resultBitmap = responseBytes?.let {
                                 android.graphics.BitmapFactory.decodeByteArray(it, 0, it.size)
                             }
+
+                            // Save processed image to gallery and get its URI
+                            var savedImageUri: String? = null
+                            if (resultBitmap != null) {
+                                savedImageUri = saveImageToGalleryAndGetUri(context, resultBitmap, filename)?.toString()
+                            }
+
                             withContext(Dispatchers.Main) {
                                 onUploadSuccess(filename, resultBitmap)
+                            }
+
+                            // Add marker from upload response to local store with image URI
+                            if (location != null) {
+                                LocalMarkerStore.addMarker(
+                                    MapMarker(
+                                        id = filename,
+                                        longitude = location.longitude,
+                                        latitude = location.latitude,
+                                        severity = 2,
+                                        damageType = "Pothole",
+                                        imageUrl = savedImageUri,
+                                        capturedAt = java.time.Instant.now().toString()
+                                    )
+                                )
                             }
                         } else {
                             withContext(Dispatchers.Main) {

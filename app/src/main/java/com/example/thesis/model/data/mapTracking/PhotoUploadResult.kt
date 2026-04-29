@@ -6,5 +6,7 @@ data class PhotoUploadResult(
     val frameId: String?,
     val processingTimeMs: Int?,
     val inferenceData: String?,
-    val savedImageUri: Uri?
+    val savedImageUri: Uri?,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )

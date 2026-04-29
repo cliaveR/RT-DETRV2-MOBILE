@@ -13,19 +13,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.thesis.domain.repository.PhotoRepository
 import com.example.thesis.model.data.mapTracking.PhotoUploadResult
 import com.example.thesis.view.popUpContent.parts.ImageDetailsCard
 import com.example.thesis.view.popUpContent.parts.PictureResultCard
 
 @Composable
 fun PopUpContent(imageUri: Uri?, navController: NavController, result: PhotoUploadResult? = null) {
+    val context = LocalContext.current
+    val repository = remember { PhotoRepository(context) }
+    var dbResult by remember { mutableStateOf<PhotoUploadResult?>(null) }
+
+    LaunchedEffect(imageUri) {
+        if (result == null && imageUri != null) {
+            val item = repository.getImageDetails(imageUri)
+            if (item != null) {
+                dbResult = PhotoUploadResult(
+                    frameId = null,
+                    processingTimeMs = null,
+                    inferenceData = item.inferenceData,
+                    savedImageUri = imageUri
+                )
+            }
+        }
+    }
+
+    val finalResult = result ?: dbResult
+
     Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
         IconButton(
             onClick = { navController.popBackStack() },
@@ -43,9 +63,8 @@ fun PopUpContent(imageUri: Uri?, navController: NavController, result: PhotoUplo
             )
         }
 
-
         PictureResultCard(imageUri)
         Spacer(modifier = Modifier.height(50.dp))
-        ImageDetailsCard(result)
+        ImageDetailsCard(result = finalResult, imageUri = imageUri)
     }
 }

@@ -44,7 +44,6 @@ dependencies {
     implementation(libs.volley)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.ui.graphics)
-    implementation(libs.play.services.location)
     val camerax_version = "1.5.3"
     implementation("androidx.camera:camera-core:$camerax_version")
     implementation("androidx.camera:camera-camera2:$camerax_version") // ✅ this is what's missing
