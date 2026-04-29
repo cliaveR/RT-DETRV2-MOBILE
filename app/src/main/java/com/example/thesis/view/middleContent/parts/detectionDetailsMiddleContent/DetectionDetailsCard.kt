@@ -43,11 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arcgismaps.mapping.view.GraphicsOverlay
-import com.arcgismaps.toolkit.geoviewcompose.MapView
-import com.example.thesis.model.`object`.MapUtils
-import com.example.thesis.model.`object`.MapUtils.createMap
-import com.arcgismaps.Color as ArcColor
+import com.example.thesis.view.middleContent.parts.mapContent.MapViewScreen
 
 
 @Preview
@@ -55,20 +51,6 @@ import com.arcgismaps.Color as ArcColor
 fun DetectionDetailsCard() {
 
     val isPreview = LocalInspectionMode.current
-
-    // Only initialize ArcGIS stuff when NOT in preview
-    val map = if (!isPreview) remember { createMap() } else null
-    val graphicsOverlay = if (!isPreview) remember {
-        GraphicsOverlay().apply {
-            graphics.addAll(
-                listOf(
-                    MapUtils.createPointGraphic(120.371082, 17.595492, ArcColor.red),
-                    MapUtils.createPointGraphic(120.399521, 17.581936, ArcColor.green),
-                    MapUtils.createPointGraphic(120.389398, 17.589375, ArcColor.red)
-                )
-            )
-        }
-    } else null
 
     var defect by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
@@ -121,7 +103,7 @@ fun DetectionDetailsCard() {
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF2F2F2))
             ) {
-                if (isPreview || map == null || graphicsOverlay == null) {
+                if (isPreview) {
                     // Preview-safe placeholder
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -134,11 +116,7 @@ fun DetectionDetailsCard() {
                         )
                     }
                 } else {
-                    MapView(
-                        modifier = Modifier.fillMaxSize(),
-                        arcGISMap = map,
-                        graphicsOverlays = listOf(graphicsOverlay)
-                    )
+                    MapViewScreen(modifier = Modifier.fillMaxSize())
                 }
             }
 

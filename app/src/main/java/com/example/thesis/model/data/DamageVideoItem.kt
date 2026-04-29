@@ -2,9 +2,8 @@ package com.example.thesis.model.data
 
 import android.net.Uri
 
-data class DamageImageItem(
+data class DamageVideoItem(
     val uri: Uri,
     val displayName: String,
-    val dateAddedSeconds: Long?,
-    val inferenceData: String? = null
+    val dateAddedSeconds: Long?
 )

@@ -1,6 +1,7 @@
 package com.example.thesis.viewmodel.CameraContent
 
 import android.Manifest
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.getValue
@@ -15,7 +16,6 @@ import com.example.thesis.domain.repository.VideoRepository
 import com.example.thesis.model.data.mapTracking.GeoCoordinate
 import com.example.thesis.model.data.mapTracking.VideoCaptureCoordinates
 import kotlinx.coroutines.launch
-import java.io.File
 
 class VideoViewModel(
     private val repository: VideoRepository,
@@ -24,7 +24,7 @@ class VideoViewModel(
 
     var isRecording by mutableStateOf(false)
     var isProcessing by mutableStateOf(false)
-    var processedVideoFile by mutableStateOf<File?>(null)
+    var processedVideoUri by mutableStateOf<Uri?>(null)
 
     private var recordingStartCoordinate: GeoCoordinate? = null
     private var recordingEndCoordinate: GeoCoordinate? = null
@@ -59,9 +59,9 @@ class VideoViewModel(
                             end = recordingEndCoordinate
                         )
 
-                        repository.uploadVideo(it, metadata) { success, resultFile ->
+                        repository.uploadVideo(it, metadata) { success, resultUri ->
                             isProcessing = false
-                            if (success) processedVideoFile = resultFile
+                            if (success) processedVideoUri = resultUri
                             recordingStartCoordinate = null
                             recordingEndCoordinate = null
                         }
