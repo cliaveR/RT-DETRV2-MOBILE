@@ -154,18 +154,21 @@ fun MapViewScreen(modifier: Modifier = Modifier) {
                     return@MapView
                 }
 
-                val tappedGraphics = photoMarkerOverlay.graphics.filter { graphic ->
-                    val geom = graphic.geometry as? Point ?: return@filter false
-                    val dx = geom.x - tapWgs84.x
-                    val dy = geom.y - tapWgs84.y
-                    val dist = Math.sqrt(dx * dx + dy * dy)
-                    Log.d("MarkerPopup", "  checking markerId=${graphic.attributes["markerId"]} dist=$dist")
-                    dist < 0.001
-                }
+                // FIX: Instead of just filtering and picking the first one, 
+                // we calculate the distance for each and pick the CLOSEST one.
+                val tapped = photoMarkerOverlay.graphics
+                    .mapNotNull { graphic ->
+                        val geom = graphic.geometry as? Point ?: return@mapNotNull null
+                        val dx = geom.x - tapWgs84.x
+                        val dy = geom.y - tapWgs84.y
+                        val dist = Math.sqrt(dx * dx + dy * dy)
+                        
+                        // Using a smaller threshold (0.0005 approx 50m) and storing distance
+                        if (dist < 0.0005) graphic to dist else null
+                    }
+                    .minByOrNull { it.second } // Pick the graphic with the smallest distance
+                    ?.first
 
-                Log.d("MarkerPopup", "Hit test — hits=${tappedGraphics.size}")
-
-                val tapped = tappedGraphics.firstOrNull()
                 if (tapped != null) {
                     val markerId = tapped.attributes["markerId"] as? String
                     // Look up from LIVE photoMarkers StateFlow — always the latest data

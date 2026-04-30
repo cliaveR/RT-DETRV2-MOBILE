@@ -13,6 +13,7 @@ import com.example.thesis.domain.repository.PhotoRepository
 import com.example.thesis.model.data.MapMarker
 import com.example.thesis.model.`object`.LocalMarkerStore
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class PhotoViewModel : ViewModel() {
 
@@ -78,9 +79,12 @@ class PhotoViewModel : ViewModel() {
 
                                 Log.d("MarkerPopup", "Parsed — damageType=$damageType confidence=$confidence severity=$severity")
 
+                                // USE A TRULY UNIQUE ID AND ENSURE savedImageUri IS USED
+                                val uniqueId = UUID.randomUUID().toString()
+
                                 LocalMarkerStore.addMarker(
                                     MapMarker(
-                                        id = result.frameId ?: System.currentTimeMillis().toString(),
+                                        id = uniqueId,
                                         longitude = markerLon,
                                         latitude = markerLat,
                                         severity = severity,
