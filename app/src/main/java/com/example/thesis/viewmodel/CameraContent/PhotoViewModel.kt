@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.thesis.domain.camera.CameraManager
 import com.example.thesis.domain.location.CurrentLocationProvider
 import com.example.thesis.domain.repository.PhotoRepository
+import com.example.thesis.model.data.MapMarker
+import com.example.thesis.model.`object`.LocalMarkerStore
 import kotlinx.coroutines.launch
 
 class PhotoViewModel : ViewModel() {
@@ -43,23 +45,62 @@ class PhotoViewModel : ViewModel() {
                 viewModelScope.launch {
                     isUploading = true
                     try {
-                        // Capture coordinate immediately before upload request.
                         val captureCoordinate = locationProvider.getCurrentCoordinateOrNull()
                         Log.d(TAG, "Photo capture coordinate=$captureCoordinate")
 
-                        val savedUri = repo.uploadAndSaveVisualized(
+                        val result = repo.uploadAndSaveVisualized(
                             uri = uri,
                             captureCoordinate = captureCoordinate
                         )
 
-                        onResult(
-                            if (savedUri != null) {
-                                "Processed image saved to Gallery ✅"
+                        Log.d(TAG, "uploadAndSaveVisualized result=$result")
+
+                        if (result != null) {
+                            // Prefer GPS coordinate, fall back to server-echoed coords
+                            val markerLat = captureCoordinate?.latitude ?: result.latitude
+                            val markerLon = captureCoordinate?.longitude ?: result.longitude
+
+                            Log.d("MarkerPopup", "Upload success — lat=$markerLat lon=$markerLon imageUri=${result.savedImageUri}")
+
+                            if (markerLat != null && markerLon != null) {
+                                // Parse inferenceData JSON from server
+                                val inferenceJson = result.inferenceData?.let { org.json.JSONObject(it) }
+                                val detections = inferenceJson?.optJSONArray("detections")
+                                val firstDetection = detections?.optJSONObject(0)
+
+                                val damageType = firstDetection?.optString("class", "Unknown") ?: "Unknown"
+                                val confidence = firstDetection?.optDouble("confidence", 0.0) ?: 0.0
+                                val severity = when {
+                                    confidence >= 0.75 -> 3  // High
+                                    confidence >= 0.50 -> 2  // Medium
+                                    else -> 1                // Low
+                                }
+
+                                Log.d("MarkerPopup", "Parsed — damageType=$damageType confidence=$confidence severity=$severity")
+
+                                LocalMarkerStore.addMarker(
+                                    MapMarker(
+                                        id = result.frameId ?: System.currentTimeMillis().toString(),
+                                        longitude = markerLon,
+                                        latitude = markerLat,
+                                        severity = severity,
+                                        damageType = damageType,
+                                        imageUrl = result.savedImageUri?.toString(),
+                                        capturedAt = java.time.Instant.now().toString()
+                                    )
+                                )
+                                Log.d("MarkerPopup", "Marker added! Store size=${LocalMarkerStore.getMarkers().size}")
                             } else {
-                                "Upload/processing failed ❌"
+                                Log.w("MarkerPopup", "No coords from GPS or server — marker skipped")
                             }
-                        )
+
+                            onResult("Processed image saved to Gallery ✅")
+                        } else {
+                            Log.w("MarkerPopup", "Upload returned null — marker not added")
+                            onResult("Upload/processing failed ❌")
+                        }
                     } catch (e: Exception) {
+                        Log.e("MarkerPopup", "captureAndUpload exception: ${e.message}")
                         onResult("Error: ${e.message}")
                     }
                     isUploading = false

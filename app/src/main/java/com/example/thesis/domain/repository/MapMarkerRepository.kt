@@ -12,7 +12,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class MapMarkerRepository(
-    private val baseUrl: String = "http://192.168.254.200:8080"
+    private val baseUrl: String = "http://192.168.254.201:8080"
 ) {
     private val tag = "MAP_MARKER_REPO"
     private val client = OkHttpClient()

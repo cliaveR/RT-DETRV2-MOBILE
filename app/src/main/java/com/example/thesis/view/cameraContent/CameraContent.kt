@@ -1,5 +1,6 @@
 package com.example.thesis.view.cameraContent
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.os.Environment
@@ -224,6 +225,7 @@ fun saveImageToGalleryAndGetUri(
 
 // Try to obtain the last known location. This may return null if location permission
 // hasn't been granted or no location is available yet.
+@SuppressLint("MissingPermission")
 suspend fun fetchLastLocation(context: Context): android.location.Location? {
     return suspendCoroutine { cont ->
         try {
@@ -280,7 +282,10 @@ fun capturePhoto(
                                     } catch (e: Exception) {
                                         null
                                     }
-                        // Read image bytes from URI
+                                    // ADD THIS:
+                        Log.d("MarkerPopup", "fetchLastLocation result: lat=${location?.latitude} lon=${location?.longitude} — isNull=${location == null}")
+
+                                    // Read image bytes from URI
                         val imageBytes = context.contentResolver
                             .openInputStream(uri)?.readBytes() ?: return@launch
                         val filename = "${System.currentTimeMillis()}.jpg"
@@ -329,29 +334,40 @@ fun capturePhoto(
                                 savedImageUri = saveImageToGalleryAndGetUri(context, resultBitmap, filename)?.toString()
                             }
 
+                            Log.d("MarkerPopup", "Upload success — location=$location savedUri=$savedImageUri")
+
                             withContext(Dispatchers.Main) {
                                 onUploadSuccess(filename, resultBitmap)
                             }
 
                             // Add marker from upload response to local store with image URI
-                            if (location != null) {
+                            val markerLat = location?.latitude
+                            val markerLon = location?.longitude
+                            Log.d("MarkerPopup", "Adding marker? lat=$markerLat lon=$markerLon")
+
+                            if (markerLat != null && markerLon != null) {
                                 LocalMarkerStore.addMarker(
                                     MapMarker(
                                         id = filename,
-                                        longitude = location.longitude,
-                                        latitude = location.latitude,
+                                        longitude = markerLon,
+                                        latitude = markerLat,
                                         severity = 2,
                                         damageType = "Pothole",
                                         imageUrl = savedImageUri,
                                         capturedAt = java.time.Instant.now().toString()
                                     )
                                 )
+                                Log.d("MarkerPopup", "Marker added to LocalMarkerStore. Total=${LocalMarkerStore.getMarkers().size}")
+                            } else {
+                                Log.w("MarkerPopup", "Skipped adding marker — no location available")
                             }
                         } else {
                             withContext(Dispatchers.Main) {
                                 onUploadSuccess(filename, null)
                             }
+
                         }
+
                     } catch (e: Exception) {
                         Log.e("Upload", "Failed: ${e.message}")
                         withContext(Dispatchers.Main) {
