@@ -36,9 +36,11 @@ fun PopUpContent(imageUri: Uri?, navController: NavController, result: PhotoUplo
             if (item != null) {
                 dbResult = PhotoUploadResult(
                     frameId = null,
-                    processingTimeMs = item.processingTimeMs, // now loaded from sidecar
+                    processingTimeMs = item.processingTimeMs,
                     inferenceData = item.inferenceData,
-                    savedImageUri = imageUri
+                    savedImageUri = imageUri,
+                    latitude = item.latitude,
+                    longitude = item.longitude
                 )
             }
         }

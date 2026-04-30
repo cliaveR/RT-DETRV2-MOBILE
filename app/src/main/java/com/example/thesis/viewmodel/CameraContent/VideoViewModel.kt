@@ -24,35 +24,31 @@ class VideoViewModel(
 
     var isRecording by mutableStateOf(false)
     var isProcessing by mutableStateOf(false)
+
     var processedVideoUri by mutableStateOf<Uri?>(null)
+    var processingTimeMs by mutableStateOf<Long?>(null)
 
     private var recordingStartCoordinate: GeoCoordinate? = null
     private var recordingEndCoordinate: GeoCoordinate? = null
-
-    private companion object {
-        const val TAG = "VideoVM"
-    }
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun toggleRecording(cameraManager: CameraManager) {
         if (isRecording) {
             viewModelScope.launch {
-                // Capture end coordinate right before stopRecording().
                 recordingEndCoordinate = locationProvider.getCurrentCoordinateOrNull()
-                Log.d(TAG, "Video END coordinate=$recordingEndCoordinate")
                 cameraManager.stopRecording()
                 isRecording = false
             }
         } else {
             viewModelScope.launch {
-                // Capture start coordinate when recording starts.
                 recordingStartCoordinate = locationProvider.getCurrentCoordinateOrNull()
                 recordingEndCoordinate = null
-                Log.d(TAG, "Video START coordinate=$recordingStartCoordinate")
 
                 cameraManager.startRecording { uri ->
                     uri?.let {
+
                         isProcessing = true
+                        val startTime = System.currentTimeMillis()
 
                         val metadata = VideoCaptureCoordinates(
                             start = recordingStartCoordinate,
@@ -60,13 +56,22 @@ class VideoViewModel(
                         )
 
                         repository.uploadVideo(it, metadata) { success, resultUri ->
+
+                            val endTime = System.currentTimeMillis()
+                            processingTimeMs = endTime - startTime
+
                             isProcessing = false
-                            if (success) processedVideoUri = resultUri
+
+                            if (success) {
+                                processedVideoUri = resultUri
+                            }
+
                             recordingStartCoordinate = null
                             recordingEndCoordinate = null
                         }
                     }
                 }
+
                 isRecording = true
             }
         }
