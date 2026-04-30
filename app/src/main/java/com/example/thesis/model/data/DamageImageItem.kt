@@ -5,6 +5,7 @@ import android.net.Uri
 data class DamageImageItem(
     val uri: Uri,
     val displayName: String,
-    val dateAddedSeconds: Long?,
-    val inferenceData: String? = null
+    val dateAddedSeconds: Long,
+    val inferenceData: String? = null,
+    val processingTimeMs: Int? = null
 )

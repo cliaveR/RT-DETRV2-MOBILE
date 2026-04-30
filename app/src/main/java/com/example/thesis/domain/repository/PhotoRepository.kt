@@ -19,7 +19,6 @@ import okhttp3.Response
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 
@@ -30,7 +29,7 @@ class PhotoRepository(private val context: Context) {
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
-        
+
     private val tag = "PICTURE"
 
     suspend fun uploadAndSaveVisualized(
@@ -58,9 +57,13 @@ class PhotoRepository(private val context: Context) {
             }
 
             val request = Request.Builder()
-                .url("http://192.168.254.200:8080/api/upload/visualize")
+                .url("http://192.168.254.201:8080/api/upload/visualize")
                 .post(multipartBuilder.build())
                 .build()
+
+            // Start timer right before the network call
+            val uploadStartMs = System.currentTimeMillis()
+            Log.d(tag, "Upload started at $uploadStartMs")
 
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: java.io.IOException) {
@@ -69,6 +72,10 @@ class PhotoRepository(private val context: Context) {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
+                    // Stop timer as soon as response arrives
+                    val clientRoundTripMs = (System.currentTimeMillis() - uploadStartMs).toInt()
+                    Log.d(tag, "Response received — client round-trip=${clientRoundTripMs}ms")
+
                     response.use {
                         val responseText = it.body?.string()
                         if (!it.isSuccessful) {
@@ -80,23 +87,33 @@ class PhotoRepository(private val context: Context) {
                             val json = JSONObject(responseText ?: "{}")
                             val frameId = json.optString("frameId")
                             val inferenceData = json.opt("inferenceData")?.toString()
-                            val processingTimeMs = json.optInt("processingTimeMs", -1)
                             val imageBase64 = json.optString("imageBase64")
                             val latitude = json.optDouble("latitude", Double.NaN).takeIf { !it.isNaN() }
                             val longitude = json.optDouble("longitude", Double.NaN).takeIf { !it.isNaN() }
 
+                            // Use server processingTimeMs if available, else client round-trip
+                            val serverProcessingTimeMs = json.optInt("processingTimeMs", -1)
+                            val processingTimeMs = if (serverProcessingTimeMs >= 0) {
+                                Log.d(tag, "Using server processing time: ${serverProcessingTimeMs}ms")
+                                serverProcessingTimeMs
+                            } else {
+                                Log.d(tag, "Using client round-trip: ${clientRoundTripMs}ms")
+                                clientRoundTripMs
+                            }
+
+                            Log.d(tag, "Final processingTimeMs=$processingTimeMs")
                             Log.d(tag, "Received inferenceData from server: $inferenceData")
 
                             val savedUri = if (!imageBase64.isNullOrBlank()) {
                                 val imageBytes = Base64.decode(imageBase64, Base64.DEFAULT)
-                                saveImageToGallery(imageBytes, inferenceData)
+                                saveImageToGallery(imageBytes, inferenceData, processingTimeMs)
                             } else null
 
                             if (continuation.isActive) {
                                 continuation.resume(
                                     PhotoUploadResult(
                                         frameId = frameId,
-                                        processingTimeMs = if (processingTimeMs >= 0) processingTimeMs else null,
+                                        processingTimeMs = processingTimeMs,
                                         inferenceData = inferenceData,
                                         savedImageUri = savedUri,
                                         latitude = latitude,
@@ -105,17 +122,23 @@ class PhotoRepository(private val context: Context) {
                                 )
                             }
                         } catch (e: Exception) {
+                            Log.e(tag, "Failed to parse response: ${e.message}")
                             if (continuation.isActive) continuation.resume(null)
                         }
                     }
                 }
             })
         } catch (e: Exception) {
+            Log.e(tag, "Upload exception: ${e.message}")
             if (continuation.isActive) continuation.resume(null)
         }
     }
 
-    private fun saveImageToGallery(bytes: ByteArray, inferenceData: String? = null): Uri? {
+    private fun saveImageToGallery(
+        bytes: ByteArray,
+        inferenceData: String? = null,
+        processingTimeMs: Int? = null
+    ): Uri? {
         return try {
             val timestamp = System.currentTimeMillis()
             val filename = "Thesis_Processed_${timestamp}.jpg"
@@ -124,8 +147,6 @@ class PhotoRepository(private val context: Context) {
                 put(MediaStore.Images.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
                 put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ThesisApp")
-                // DESCRIPTION is unreliable on Android 10+ scoped storage
-                // We'll store inference data in a sidecar .json file instead
             }
 
             val uri = context.contentResolver.insert(
@@ -138,9 +159,8 @@ class PhotoRepository(private val context: Context) {
                 outputStream.flush()
             }
 
-            // Save inference data as a sidecar JSON file in app's private storage
             if (!inferenceData.isNullOrBlank()) {
-                saveInferenceMetadata(timestamp, inferenceData)
+                saveInferenceMetadata(timestamp, inferenceData, processingTimeMs)
             }
 
             Log.d(tag, "Saved image to gallery, metadata saved for timestamp: $timestamp")
@@ -151,41 +171,52 @@ class PhotoRepository(private val context: Context) {
         }
     }
 
-    private fun saveInferenceMetadata(timestamp: Long, inferenceData: String) {
+    private fun saveInferenceMetadata(
+        timestamp: Long,
+        inferenceData: String,
+        processingTimeMs: Int? = null
+    ) {
         try {
             val metaDir = java.io.File(context.filesDir, "inference_metadata")
             if (!metaDir.exists()) metaDir.mkdirs()
             val metaFile = java.io.File(metaDir, "meta_${timestamp}.json")
-            metaFile.writeText(inferenceData)
+            val meta = JSONObject().apply {
+                put("inferenceData", inferenceData)
+                processingTimeMs?.let { put("processingTimeMs", it) }
+            }
+            metaFile.writeText(meta.toString())
             Log.d(tag, "Inference metadata saved: ${metaFile.absolutePath}")
         } catch (e: Exception) {
             Log.e(tag, "Failed to save inference metadata: ${e.message}")
         }
     }
 
-    // Load inference metadata for a given image filename
-    private fun loadInferenceMetadata(displayName: String): String? {
+    private fun loadInferenceMetadata(displayName: String): Pair<String?, Int?> {
         return try {
-            // Extract timestamp from filename: "Thesis_Processed_1234567890.jpg"
             val timestamp = displayName
                 .removePrefix("Thesis_Processed_")
                 .removeSuffix(".jpg")
-                .toLongOrNull() ?: return null
+                .toLongOrNull() ?: return Pair(null, null)
 
             val metaDir = java.io.File(context.filesDir, "inference_metadata")
             val metaFile = java.io.File(metaDir, "meta_${timestamp}.json")
-            if (metaFile.exists()) metaFile.readText() else null
+            if (!metaFile.exists()) return Pair(null, null)
+
+            val meta = JSONObject(metaFile.readText())
+            val inferenceData = meta.optString("inferenceData").ifBlank { null }
+            val processingTimeMs = if (meta.has("processingTimeMs")) meta.getInt("processingTimeMs") else null
+            Pair(inferenceData, processingTimeMs)
         } catch (e: Exception) {
             Log.e(tag, "Failed to load inference metadata: ${e.message}")
-            null
+            Pair(null, null)
         }
     }
+
     fun getDamageImagesFromGallery(): List<DamageImageItem> {
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
             MediaStore.Images.Media.DISPLAY_NAME,
             MediaStore.Images.Media.DATE_ADDED
-            // Removed DESCRIPTION - unreliable on Android 10+
         )
         val selection = "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?"
         val selectionArgs = arrayOf("%Pictures/ThesisApp%")
@@ -206,8 +237,7 @@ class PhotoRepository(private val context: Context) {
 
             while (cursor.moveToNext()) {
                 val displayName = cursor.getString(nameIndex) ?: continue
-                // Load from sidecar file instead of DESCRIPTION column
-                val inferenceData = loadInferenceMetadata(displayName)
+                val (inferenceData, processingTimeMs) = loadInferenceMetadata(displayName)
 
                 results += DamageImageItem(
                     uri = Uri.withAppendedPath(
@@ -216,7 +246,8 @@ class PhotoRepository(private val context: Context) {
                     ),
                     displayName = displayName,
                     dateAddedSeconds = cursor.getLong(dateIndex),
-                    inferenceData = inferenceData
+                    inferenceData = inferenceData,
+                    processingTimeMs = processingTimeMs
                 )
             }
         }
@@ -228,7 +259,6 @@ class PhotoRepository(private val context: Context) {
             MediaStore.Images.Media.DISPLAY_NAME,
             MediaStore.Images.Media.DATE_ADDED
         )
-
         return try {
             context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
@@ -236,9 +266,8 @@ class PhotoRepository(private val context: Context) {
                         cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
                     ) ?: "Image"
 
-                    // Load inference from sidecar file
-                    val inferenceData = loadInferenceMetadata(displayName)
-                    Log.d(tag, "getImageDetails: loaded inferenceData=$inferenceData for $displayName")
+                    val (inferenceData, processingTimeMs) = loadInferenceMetadata(displayName)
+                    Log.d(tag, "getImageDetails: inferenceData=$inferenceData processingTimeMs=$processingTimeMs for $displayName")
 
                     DamageImageItem(
                         uri = uri,
@@ -246,7 +275,8 @@ class PhotoRepository(private val context: Context) {
                         dateAddedSeconds = cursor.getLong(
                             cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
                         ),
-                        inferenceData = inferenceData
+                        inferenceData = inferenceData,
+                        processingTimeMs = processingTimeMs
                     )
                 } else null
             }

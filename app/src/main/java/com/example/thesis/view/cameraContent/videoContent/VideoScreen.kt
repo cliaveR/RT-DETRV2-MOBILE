@@ -42,7 +42,7 @@ fun VideoScreen(navController: NavController) {
 
     // 1. Initialize Repository (Use your local IP if on physical device, 10.0.2.2 for emulator)
     val repository = remember {
-        VideoRepository(context, "http://192.168.254.200:8080/api/upload/video")
+        VideoRepository(context, "http://192.168.254.201:8080/api/upload/video")
     }
 
     val locationProvider = remember { CurrentLocationProvider(context) }

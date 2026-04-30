@@ -36,7 +36,7 @@ fun PopUpContent(imageUri: Uri?, navController: NavController, result: PhotoUplo
             if (item != null) {
                 dbResult = PhotoUploadResult(
                     frameId = null,
-                    processingTimeMs = null,
+                    processingTimeMs = item.processingTimeMs, // now loaded from sidecar
                     inferenceData = item.inferenceData,
                     savedImageUri = imageUri
                 )
@@ -46,7 +46,11 @@ fun PopUpContent(imageUri: Uri?, navController: NavController, result: PhotoUplo
 
     val finalResult = result ?: dbResult
 
-    Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
