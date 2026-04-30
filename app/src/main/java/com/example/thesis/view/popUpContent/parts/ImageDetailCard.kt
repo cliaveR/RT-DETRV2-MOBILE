@@ -21,9 +21,9 @@ import kotlin.math.abs
 
 fun getSeverityLabel(count: Int): String {
     return when {
-        count == 0   -> "No Damage"
+        count == 0   -> "None"
         count <= 2   -> "Low"
-        count <= 5   -> "Medium"
+        count <= 5   -> "Moderate"
         count <= 7   -> "High"
         else         -> "Severely Damaged"
     }
