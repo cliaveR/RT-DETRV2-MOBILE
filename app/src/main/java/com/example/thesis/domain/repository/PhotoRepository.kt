@@ -61,7 +61,6 @@ class PhotoRepository(private val context: Context) {
                 .post(multipartBuilder.build())
                 .build()
 
-            // Start timer right before the network call
             val uploadStartMs = System.currentTimeMillis()
             Log.d(tag, "Upload started at $uploadStartMs")
 
@@ -72,7 +71,6 @@ class PhotoRepository(private val context: Context) {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    // Stop timer as soon as response arrives
                     val clientRoundTripMs = (System.currentTimeMillis() - uploadStartMs).toInt()
                     Log.d(tag, "Response received — client round-trip=${clientRoundTripMs}ms")
 
@@ -88,25 +86,19 @@ class PhotoRepository(private val context: Context) {
                             val frameId = json.optString("frameId")
                             val inferenceData = json.opt("inferenceData")?.toString()
                             val imageBase64 = json.optString("imageBase64")
-                            val latitude = json.optDouble("latitude", Double.NaN).takeIf { !it.isNaN() }
-                            val longitude = json.optDouble("longitude", Double.NaN).takeIf { !it.isNaN() }
+                            
+                            // Prioritize server coordinates, fallback to captureCoordinate (GPS)
+                            val finalLat = json.optDouble("latitude", Double.NaN).takeIf { !it.isNaN() } 
+                                ?: captureCoordinate?.latitude
+                            val finalLon = json.optDouble("longitude", Double.NaN).takeIf { !it.isNaN() }
+                                ?: captureCoordinate?.longitude
 
-                            // Use server processingTimeMs if available, else client round-trip
                             val serverProcessingTimeMs = json.optInt("processingTimeMs", -1)
-                            val processingTimeMs = if (serverProcessingTimeMs >= 0) {
-                                Log.d(tag, "Using server processing time: ${serverProcessingTimeMs}ms")
-                                serverProcessingTimeMs
-                            } else {
-                                Log.d(tag, "Using client round-trip: ${clientRoundTripMs}ms")
-                                clientRoundTripMs
-                            }
-
-                            Log.d(tag, "Final processingTimeMs=$processingTimeMs")
-                            Log.d(tag, "Received inferenceData from server: $inferenceData")
+                            val processingTimeMs = if (serverProcessingTimeMs >= 0) serverProcessingTimeMs else clientRoundTripMs
 
                             val savedUri = if (!imageBase64.isNullOrBlank()) {
                                 val imageBytes = Base64.decode(imageBase64, Base64.DEFAULT)
-                                saveImageToGallery(imageBytes, inferenceData, processingTimeMs)
+                                saveImageToGallery(imageBytes, inferenceData, processingTimeMs, finalLat, finalLon)
                             } else null
 
                             if (continuation.isActive) {
@@ -116,8 +108,8 @@ class PhotoRepository(private val context: Context) {
                                         processingTimeMs = processingTimeMs,
                                         inferenceData = inferenceData,
                                         savedImageUri = savedUri,
-                                        latitude = latitude,
-                                        longitude = longitude
+                                        latitude = finalLat,
+                                        longitude = finalLon
                                     )
                                 )
                             }
@@ -137,7 +129,9 @@ class PhotoRepository(private val context: Context) {
     private fun saveImageToGallery(
         bytes: ByteArray,
         inferenceData: String? = null,
-        processingTimeMs: Int? = null
+        processingTimeMs: Int? = null,
+        latitude: Double? = null,
+        longitude: Double? = null
     ): Uri? {
         return try {
             val timestamp = System.currentTimeMillis()
@@ -160,10 +154,10 @@ class PhotoRepository(private val context: Context) {
             }
 
             if (!inferenceData.isNullOrBlank()) {
-                saveInferenceMetadata(timestamp, inferenceData, processingTimeMs)
+                saveInferenceMetadata(timestamp, inferenceData, processingTimeMs, latitude, longitude)
             }
 
-            Log.d(tag, "Saved image to gallery, metadata saved for timestamp: $timestamp")
+            Log.d(tag, "Saved image to gallery with metadata. Coords: $latitude, $longitude")
             uri
         } catch (e: Exception) {
             Log.e(tag, "Failed to save image: ${e.message}")
@@ -174,7 +168,9 @@ class PhotoRepository(private val context: Context) {
     private fun saveInferenceMetadata(
         timestamp: Long,
         inferenceData: String,
-        processingTimeMs: Int? = null
+        processingTimeMs: Int? = null,
+        latitude: Double? = null,
+        longitude: Double? = null
     ) {
         try {
             val metaDir = java.io.File(context.filesDir, "inference_metadata")
@@ -183,32 +179,36 @@ class PhotoRepository(private val context: Context) {
             val meta = JSONObject().apply {
                 put("inferenceData", inferenceData)
                 processingTimeMs?.let { put("processingTimeMs", it) }
+                latitude?.let { put("latitude", it) }
+                longitude?.let { put("longitude", it) }
             }
             metaFile.writeText(meta.toString())
-            Log.d(tag, "Inference metadata saved: ${metaFile.absolutePath}")
         } catch (e: Exception) {
             Log.e(tag, "Failed to save inference metadata: ${e.message}")
         }
     }
 
-    private fun loadInferenceMetadata(displayName: String): Pair<String?, Int?> {
+    private fun loadInferenceMetadata(displayName: String): Triple<String?, Int?, Pair<Double?, Double?>> {
         return try {
             val timestamp = displayName
                 .removePrefix("Thesis_Processed_")
                 .removeSuffix(".jpg")
-                .toLongOrNull() ?: return Pair(null, null)
+                .toLongOrNull() ?: return Triple(null, null, Pair(null, null))
 
             val metaDir = java.io.File(context.filesDir, "inference_metadata")
             val metaFile = java.io.File(metaDir, "meta_${timestamp}.json")
-            if (!metaFile.exists()) return Pair(null, null)
+            if (!metaFile.exists()) return Triple(null, null, Pair(null, null))
 
             val meta = JSONObject(metaFile.readText())
             val inferenceData = meta.optString("inferenceData").ifBlank { null }
             val processingTimeMs = if (meta.has("processingTimeMs")) meta.getInt("processingTimeMs") else null
-            Pair(inferenceData, processingTimeMs)
+            val latitude = if (meta.has("latitude")) meta.getDouble("latitude") else null
+            val longitude = if (meta.has("longitude")) meta.getDouble("longitude") else null
+            
+            Triple(inferenceData, processingTimeMs, Pair(latitude, longitude))
         } catch (e: Exception) {
             Log.e(tag, "Failed to load inference metadata: ${e.message}")
-            Pair(null, null)
+            Triple(null, null, Pair(null, null))
         }
     }
 
@@ -237,7 +237,7 @@ class PhotoRepository(private val context: Context) {
 
             while (cursor.moveToNext()) {
                 val displayName = cursor.getString(nameIndex) ?: continue
-                val (inferenceData, processingTimeMs) = loadInferenceMetadata(displayName)
+                val (inferenceData, processingTimeMs, coords) = loadInferenceMetadata(displayName)
 
                 results += DamageImageItem(
                     uri = Uri.withAppendedPath(
@@ -247,7 +247,9 @@ class PhotoRepository(private val context: Context) {
                     displayName = displayName,
                     dateAddedSeconds = cursor.getLong(dateIndex),
                     inferenceData = inferenceData,
-                    processingTimeMs = processingTimeMs
+                    processingTimeMs = processingTimeMs,
+                    latitude = coords.first,
+                    longitude = coords.second
                 )
             }
         }
@@ -266,8 +268,8 @@ class PhotoRepository(private val context: Context) {
                         cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
                     ) ?: "Image"
 
-                    val (inferenceData, processingTimeMs) = loadInferenceMetadata(displayName)
-                    Log.d(tag, "getImageDetails: inferenceData=$inferenceData processingTimeMs=$processingTimeMs for $displayName")
+                    val (inferenceData, processingTimeMs, coords) = loadInferenceMetadata(displayName)
+                    Log.d(tag, "getImageDetails: loaded coords=${coords.first}, ${coords.second}")
 
                     DamageImageItem(
                         uri = uri,
@@ -276,7 +278,9 @@ class PhotoRepository(private val context: Context) {
                             cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
                         ),
                         inferenceData = inferenceData,
-                        processingTimeMs = processingTimeMs
+                        processingTimeMs = processingTimeMs,
+                        latitude = coords.first,
+                        longitude = coords.second
                     )
                 } else null
             }

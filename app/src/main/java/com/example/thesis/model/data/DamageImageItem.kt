@@ -7,5 +7,7 @@ data class DamageImageItem(
     val displayName: String,
     val dateAddedSeconds: Long,
     val inferenceData: String? = null,
-    val processingTimeMs: Int? = null
+    val processingTimeMs: Int? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )

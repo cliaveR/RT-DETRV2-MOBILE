@@ -23,14 +23,16 @@ fun DetailBox(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    valueColor: Color = Color.Black // new optional param
+    valueColor: Color = Color.Black
 ) {
     Column(modifier = modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
+        if (label.isNotEmpty()) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+        }
 
         Card(
             shape = RoundedCornerShape(12.dp),
@@ -48,7 +50,7 @@ fun DetailBox(
                 Text(
                     text = value,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = valueColor, // use the passed color here
+                        color = valueColor,
                         fontSize = 14.sp
                     )
                 )
@@ -60,5 +62,5 @@ fun DetailBox(
 @Composable
 @Preview
 fun useDetailBox() {
-    DetailBox("asd", "asd")
+    DetailBox("Label", "Value")
 }
