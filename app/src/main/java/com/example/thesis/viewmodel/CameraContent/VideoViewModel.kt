@@ -15,6 +15,8 @@ import com.example.thesis.domain.location.CurrentLocationProvider
 import com.example.thesis.domain.repository.VideoRepository
 import com.example.thesis.model.data.mapTracking.GeoCoordinate
 import com.example.thesis.model.data.mapTracking.VideoCaptureCoordinates
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class VideoViewModel(
@@ -27,6 +29,9 @@ class VideoViewModel(
 
     var processedVideoUri by mutableStateOf<Uri?>(null)
     var processingTimeMs by mutableStateOf<Long?>(null)
+
+    private val _toastMessage = MutableSharedFlow<String>()
+    val toastMessage = _toastMessage.asSharedFlow()
 
     private var recordingStartCoordinate: GeoCoordinate? = null
     private var recordingEndCoordinate: GeoCoordinate? = null
@@ -46,7 +51,6 @@ class VideoViewModel(
 
                 cameraManager.startRecording { uri ->
                     uri?.let {
-
                         isProcessing = true
                         val startTime = System.currentTimeMillis()
 
@@ -56,14 +60,17 @@ class VideoViewModel(
                         )
 
                         repository.uploadVideo(it, metadata) { success, resultUri ->
-
                             val endTime = System.currentTimeMillis()
                             processingTimeMs = endTime - startTime
-
                             isProcessing = false
 
-                            if (success) {
-                                processedVideoUri = resultUri
+                            viewModelScope.launch {
+                                if (success) {
+                                    processedVideoUri = resultUri
+                                    _toastMessage.emit("Video analysis successful! ✅")
+                                } else {
+                                    _toastMessage.emit("Video analysis failed. ❌")
+                                }
                             }
 
                             recordingStartCoordinate = null

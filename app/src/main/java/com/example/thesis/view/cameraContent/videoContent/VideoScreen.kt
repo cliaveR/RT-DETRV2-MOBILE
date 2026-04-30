@@ -1,6 +1,7 @@
 package com.example.thesis.view.cameraContent.videoContent
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,13 +36,13 @@ import com.example.thesis.domain.repository.VideoRepository
 import com.example.thesis.viewmodel.CameraContent.VideoViewModel
 import com.example.thesis.viewmodel.CameraContent.VideoViewModelFactory
 import com.example.thesis.domain.location.CurrentLocationProvider
-// ui/video/VideoScreen.kt
+import kotlinx.coroutines.flow.collectLatest
+
 @SuppressLint("MissingPermission")
 @Composable
 fun VideoScreen(navController: NavController) {
     val context = LocalContext.current
 
-    // 1. Initialize Repository (Use your local IP if on physical device, 10.0.2.2 for emulator)
     val repository = remember {
         VideoRepository(context, "http://192.168.254.201:8080/api/upload/video")
     }
@@ -57,8 +59,14 @@ fun VideoScreen(navController: NavController) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraManager = remember { CameraManager(context) }
 
+    // Observe toast messages from ViewModel
+    LaunchedEffect(viewModel.toastMessage) {
+        viewModel.toastMessage.collectLatest { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // Full screen camera preview
         CameraPreview(modifier = Modifier.fillMaxSize()) { previewUseCase ->
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProviderFuture.addListener({
@@ -74,8 +82,6 @@ fun VideoScreen(navController: NavController) {
             }, ContextCompat.getMainExecutor(context))
         }
 
-        // --- NEW: PROCESSING OVERLAY ---
-        // This shows a dark screen with a message while Python/Spring are working
         if (viewModel.isProcessing) {
             Box(
                 modifier = Modifier
@@ -92,7 +98,6 @@ fun VideoScreen(navController: NavController) {
             }
         }
 
-        // Back Button
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
@@ -103,7 +108,6 @@ fun VideoScreen(navController: NavController) {
             Icon(Icons.Default.ArrowBackIosNew, "Back", tint = Color.White)
         }
 
-        // Recording Controls
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -113,12 +117,10 @@ fun VideoScreen(navController: NavController) {
         ) {
             Button(
                 onClick = @androidx.annotation.RequiresPermission(android.Manifest.permission.RECORD_AUDIO) {
-                    // We no longer pass the URI callback here because
-                    // the ViewModel handles the upload internally now.
                     viewModel.toggleRecording(cameraManager)
                 },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                enabled = !viewModel.isProcessing, // Disable button while uploading
+                enabled = !viewModel.isProcessing,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (viewModel.isRecording) Color.Red else Color.Blue
                 )

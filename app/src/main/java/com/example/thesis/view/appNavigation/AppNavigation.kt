@@ -16,6 +16,7 @@ import com.example.thesis.view.cameraContent.CameraScreen
 import com.example.thesis.view.cameraContent.videoContent.PhotoScreen
 import com.example.thesis.view.cameraContent.videoContent.VideoScreen
 import com.example.thesis.view.popUpContent.PopUpContent
+import com.example.thesis.view.popUpContent.PopUpVideoDamage
 import com.example.thesis.view.startups.launchScreen.LaunchScreenView
 import com.example.thesis.view.topContent.parts.topContent.PictureCameraButtons
 import com.example.thesis.view.uploadImageContent.UploadImagePage
@@ -89,6 +90,18 @@ fun AppNavigation(navController: NavHostController) {
             }
         }
 
+        composable ("${NAVIGATIONPATH.VIDEO_DAMAGE.route}/{video_uri}"){
+            backstackEntry ->
+            val videoUri = backstackEntry.arguments
+                ?.getString("video_uri")
+                ?.let { Uri.parse(it) }
+            MainNavigationContainer(
+                currentRoute,navController
+            ) {
+                PopUpVideoDamage(videoUri, navController)
+            }
+        }
+
         composable (NAVIGATIONPATH.CAMERA.route){
             CameraScreen(navController)
         }
@@ -122,6 +135,4 @@ fun AppNavigation(navController: NavHostController) {
             }
         }
     }
-//tag:LocService | tag:LocVM | tag:LocArcUI | tag:LocPerm
 }
-

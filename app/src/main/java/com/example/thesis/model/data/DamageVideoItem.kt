@@ -6,5 +6,7 @@ data class DamageVideoItem(
     val uri: Uri,
     val displayName: String,
     val dateAddedSeconds: Long?,
-    val processingTimeMs: Int? = null
+    val processingTimeMs: Int? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )

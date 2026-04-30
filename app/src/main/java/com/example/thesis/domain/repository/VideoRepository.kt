@@ -15,6 +15,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -40,12 +41,11 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
         coordinates: VideoCaptureCoordinates?,
         onResult: (Boolean, Uri?) -> Unit
     ) {
-        Log.d(tag, "Starting upload process for URI: $videoUri")
+        val startTime = System.currentTimeMillis()
         val contentResolver = context.contentResolver
         val inputStream: InputStream? = contentResolver.openInputStream(videoUri)
 
         if (inputStream == null) {
-            Log.e(tag, "Failed to open InputStream from Uri")
             onResult(false, null)
             return
         }
@@ -68,14 +68,6 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
                     .addFormDataPart("start_longitude", it.longitude.toString())
             }
 
-            coordinates?.end?.let {
-                multipartBuilder
-                    .addFormDataPart("end_latitude", it.latitude.toString())
-                    .addFormDataPart("end_longitude", it.longitude.toString())
-            }
-
-            Log.d(tag, "Bundled video GPS metadata=$coordinates")
-
             val request = Request.Builder()
                 .url(backendUrl)
                 .post(multipartBuilder.build())
@@ -83,40 +75,37 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
 
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.e(tag, "Network Error: ${e.message}")
                     onResult(false, null)
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    Log.d(tag, "Response Code: ${response.code}")
                     if (response.isSuccessful) {
                         try {
                             val videoBytes = response.body?.bytes()
                             if (videoBytes != null) {
-                                val savedUri = saveVideoToGallery(videoBytes)
+                                val processingTime = (System.currentTimeMillis() - startTime).toInt()
+                                val savedUri = saveVideoToGallery(videoBytes, processingTime, coordinates?.start?.latitude, coordinates?.start?.longitude)
                                 onResult(true, savedUri)
                             } else {
                                 onResult(false, null)
                             }
                         } catch (e: Exception) {
-                            Log.e(tag, "Error saving processed video: ${e.message}")
                             onResult(false, null)
                         }
                     } else {
-                        Log.e(tag, "Server Error Response: ${response.body?.string()}")
                         onResult(false, null)
                     }
                 }
             })
         } catch (e: Exception) {
-            Log.e(tag, "Preparation Error: ${e.message}")
             onResult(false, null)
         }
     }
 
-    private fun saveVideoToGallery(bytes: ByteArray): Uri? {
+    private fun saveVideoToGallery(bytes: ByteArray, processingTimeMs: Int? = null, latitude: Double? = null, longitude: Double? = null): Uri? {
         return try {
-            val filename = "Thesis_Processed_${System.currentTimeMillis()}.mp4"
+            val timestamp = System.currentTimeMillis()
+            val filename = "Thesis_Processed_${timestamp}.mp4"
             val contentValues = ContentValues().apply {
                 put(MediaStore.Video.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
@@ -128,16 +117,51 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
                 contentValues
             ) ?: return null
 
-            val outputStream: OutputStream? = context.contentResolver.openOutputStream(uri)
-            outputStream?.use {
+            context.contentResolver.openOutputStream(uri)?.use {
                 it.write(bytes)
                 it.flush()
             }
-            Log.d(tag, "Video saved to gallery: $uri")
+
+            saveVideoMetadata(timestamp, processingTimeMs, latitude, longitude)
+            
             uri
         } catch (e: Exception) {
-            Log.e(tag, "Save to gallery failed: ${e.message}")
             null
+        }
+    }
+
+    private fun saveVideoMetadata(timestamp: Long, processingTimeMs: Int?, latitude: Double?, longitude: Double?) {
+        try {
+            val metaDir = File(context.filesDir, "video_metadata")
+            if (!metaDir.exists()) metaDir.mkdirs()
+            val metaFile = File(metaDir, "meta_${timestamp}.json")
+            val meta = JSONObject().apply {
+                processingTimeMs?.let { put("processingTimeMs", it) }
+                latitude?.let { put("latitude", it) }
+                longitude?.let { put("longitude", it) }
+            }
+            metaFile.writeText(meta.toString())
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to save video metadata: ${e.message}")
+        }
+    }
+
+    private fun loadVideoMetadata(displayName: String): Triple<Int?, Double?, Double?> {
+        return try {
+            val timestamp = displayName
+                .removePrefix("Thesis_Processed_")
+                .removeSuffix(".mp4")
+                .toLongOrNull() ?: return Triple(null, null, null)
+
+            val metaFile = File(File(context.filesDir, "video_metadata"), "meta_${timestamp}.json")
+            if (!metaFile.exists()) return Triple(null, null, null)
+            val json = JSONObject(metaFile.readText())
+            val pTime = if (json.has("processingTimeMs")) json.getInt("processingTimeMs") else null
+            val lat = if (json.has("latitude")) json.getDouble("latitude") else null
+            val lon = if (json.has("longitude")) json.getDouble("longitude") else null
+            Triple(pTime, lat, lon)
+        } catch (e: Exception) {
+            Triple(null, null, null)
         }
     }
 
@@ -147,40 +171,57 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
             MediaStore.Video.Media.DISPLAY_NAME,
             MediaStore.Video.Media.DATE_ADDED
         )
-        val selection = "${MediaStore.Video.Media.RELATIVE_PATH} LIKE ? AND (${MediaStore.Video.Media.DISPLAY_NAME} LIKE ? OR ${MediaStore.Video.Media.DISPLAY_NAME} LIKE ?)"
-        val selectionArgs = arrayOf("%Movies/ThesisApp%", "Thesis_Processed_%", "processed_%")
+        val selection = "${MediaStore.Video.Media.RELATIVE_PATH} LIKE ? AND ${MediaStore.Video.Media.DISPLAY_NAME} LIKE ?"
+        val selectionArgs = arrayOf("%Movies/ThesisApp%", "Thesis_Processed_%")
         val sortOrder = "${MediaStore.Video.Media.DATE_ADDED} DESC"
 
         val results = mutableListOf<DamageVideoItem>()
 
-        val cursor = context.contentResolver.query(
+        context.contentResolver.query(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
             projection,
             selection,
             selectionArgs,
             sortOrder
-        )
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+            val dateIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
 
-        cursor?.use {
-            val idIndex = it.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameIndex = it.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val dateIndex = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
-
-            while (it.moveToNext()) {
-                val id = it.getLong(idIndex)
-                val displayName = it.getString(nameIndex) ?: "Processed Video"
-                val dateAddedSeconds = it.getLong(dateIndex)
+            while (cursor.moveToNext()) {
+                val displayName = cursor.getString(nameIndex) ?: continue
+                val (pTime, lat, lon) = loadVideoMetadata(displayName)
 
                 results += DamageVideoItem(
-                    uri = Uri.withAppendedPath(
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                        id.toString()
-                    ),
+                    uri = Uri.withAppendedPath(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getLong(idIndex).toString()),
                     displayName = displayName,
-                    dateAddedSeconds = dateAddedSeconds
+                    dateAddedSeconds = cursor.getLong(dateIndex),
+                    processingTimeMs = pTime,
+                    latitude = lat,
+                    longitude = lon
                 )
             }
         }
         return results
+    }
+
+    fun getVideoDetails(uri: Uri): DamageVideoItem? {
+        val projection = arrayOf(MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.Media.DATE_ADDED)
+        return try {
+            context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME))
+                    val (pTime, lat, lon) = loadVideoMetadata(displayName)
+                    DamageVideoItem(
+                        uri = uri,
+                        displayName = displayName,
+                        dateAddedSeconds = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)),
+                        processingTimeMs = pTime,
+                        latitude = lat,
+                        longitude = lon
+                    )
+                } else null
+            }
+        } catch (e: Exception) { null }
     }
 }
