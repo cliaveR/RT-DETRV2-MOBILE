@@ -14,6 +14,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ThesisTheme {
+                //astig
+                //ok
                 AppRoot()
             }
         }
