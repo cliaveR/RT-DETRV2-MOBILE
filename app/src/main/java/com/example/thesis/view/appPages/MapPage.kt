@@ -22,7 +22,7 @@ fun MapPage(navController: NavHostController) {
             ),
             rationale = "Location access is required to track and center your real-time position on the map."
         ) {
-            MapContent()
+            MapContent(navController = navController)
         }
     }
 }

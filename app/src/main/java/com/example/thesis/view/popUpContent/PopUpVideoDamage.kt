@@ -103,7 +103,7 @@ fun PopUpVideoDamage(videoUri: Uri?, navController: NavController) {
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    text = "Video Analysis Details",
+                    text = "Video Survey Details",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -119,7 +119,7 @@ fun PopUpVideoDamage(videoUri: Uri?, navController: NavController) {
                         .toLocalDateTime()
                         .format(DateTimeFormatter.ofPattern("MMM dd, yyyy • hh:mm a"))
                 } ?: "N/A"
-                DetailRow("Captured At", formattedDate)
+                DetailRow("Recorded At", formattedDate)
 
                 if (videoItem?.processingTimeMs != null) {
                     Spacer(modifier = Modifier.height(12.dp))
@@ -131,7 +131,7 @@ fun PopUpVideoDamage(videoUri: Uri?, navController: NavController) {
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "AI Processing Time:",
+                                text = "AI Analysis Time:",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color.Gray
@@ -149,56 +149,79 @@ fun PopUpVideoDamage(videoUri: Uri?, navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Coordinate Table Section
+                // Start Coordinates Section
                 Text(
-                    text = "LOCATION DATA",
+                    text = "STARTING LOCATION",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Gray
+                    color = Color(0xFF4CAF50) // Green to match map dot
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Spacer(modifier = Modifier.width(80.dp))
-                    Text(
-                        text = "DECIMAL",
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "DMS",
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = Color.Black
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+                CoordinateTableHeader()
                 CoordinateRow(
                     label = "Latitude", 
-                    decimalValue = videoItem?.latitude?.let { "%.6f".format(it) } ?: "N/A", 
-                    dmsValue = convertDecimalToDMS(videoItem?.latitude, true)
+                    decimalValue = videoItem?.startLatitude?.let { "%.6f".format(it) } ?: "N/A", 
+                    dmsValue = convertDecimalToDMS(videoItem?.startLatitude, true)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                CoordinateRow(
+                    label = "Longitude", 
+                    decimalValue = videoItem?.startLongitude?.let { "%.6f".format(it) } ?: "N/A", 
+                    dmsValue = convertDecimalToDMS(videoItem?.startLongitude, false)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // End Coordinates Section
+                Text(
+                    text = "ENDING LOCATION",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFF44336) // Red to match map dot
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
-
+                CoordinateTableHeader()
+                CoordinateRow(
+                    label = "Latitude", 
+                    decimalValue = videoItem?.endLatitude?.let { "%.6f".format(it) } ?: "N/A", 
+                    dmsValue = convertDecimalToDMS(videoItem?.endLatitude, true)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 CoordinateRow(
                     label = "Longitude", 
-                    decimalValue = videoItem?.longitude?.let { "%.6f".format(it) } ?: "N/A", 
-                    dmsValue = convertDecimalToDMS(videoItem?.longitude, false)
+                    decimalValue = videoItem?.endLongitude?.let { "%.6f".format(it) } ?: "N/A", 
+                    dmsValue = convertDecimalToDMS(videoItem?.endLongitude, false)
                 )
             }
         }
+    }
+}
+
+@Composable
+fun CoordinateTableHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Spacer(modifier = Modifier.width(80.dp))
+        Text(
+            text = "DECIMAL",
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp,
+            color = Color.Black
+        )
+        Text(
+            text = "DMS",
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp,
+            color = Color.Black
+        )
     }
 }
 

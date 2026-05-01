@@ -84,7 +84,7 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
                             val videoBytes = response.body?.bytes()
                             if (videoBytes != null) {
                                 val processingTime = (System.currentTimeMillis() - startTime).toInt()
-                                val savedUri = saveVideoToGallery(videoBytes, processingTime, coordinates?.start?.latitude, coordinates?.start?.longitude)
+                                val savedUri = saveVideoToGallery(videoBytes, processingTime, coordinates)
                                 onResult(true, savedUri)
                             } else {
                                 onResult(false, null)
@@ -102,7 +102,7 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
         }
     }
 
-    private fun saveVideoToGallery(bytes: ByteArray, processingTimeMs: Int? = null, latitude: Double? = null, longitude: Double? = null): Uri? {
+    private fun saveVideoToGallery(bytes: ByteArray, processingTimeMs: Int? = null, coords: VideoCaptureCoordinates? = null): Uri? {
         return try {
             val timestamp = System.currentTimeMillis()
             val filename = "Thesis_Processed_${timestamp}.mp4"
@@ -122,7 +122,7 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
                 it.flush()
             }
 
-            saveVideoMetadata(timestamp, processingTimeMs, latitude, longitude)
+            saveVideoMetadata(timestamp, processingTimeMs, coords)
             
             uri
         } catch (e: Exception) {
@@ -130,15 +130,21 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
         }
     }
 
-    private fun saveVideoMetadata(timestamp: Long, processingTimeMs: Int?, latitude: Double?, longitude: Double?) {
+    private fun saveVideoMetadata(timestamp: Long, processingTimeMs: Int?, coords: VideoCaptureCoordinates?) {
         try {
             val metaDir = File(context.filesDir, "video_metadata")
             if (!metaDir.exists()) metaDir.mkdirs()
             val metaFile = File(metaDir, "meta_${timestamp}.json")
             val meta = JSONObject().apply {
                 processingTimeMs?.let { put("processingTimeMs", it) }
-                latitude?.let { put("latitude", it) }
-                longitude?.let { put("longitude", it) }
+                coords?.start?.let {
+                    put("start_latitude", it.latitude)
+                    put("start_longitude", it.longitude)
+                }
+                coords?.end?.let {
+                    put("end_latitude", it.latitude)
+                    put("end_longitude", it.longitude)
+                }
             }
             metaFile.writeText(meta.toString())
         } catch (e: Exception) {
@@ -146,22 +152,26 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
         }
     }
 
-    private fun loadVideoMetadata(displayName: String): Triple<Int?, Double?, Double?> {
+    private fun loadVideoMetadata(displayName: String): Map<String, Any?> {
         return try {
             val timestamp = displayName
                 .removePrefix("Thesis_Processed_")
                 .removeSuffix(".mp4")
-                .toLongOrNull() ?: return Triple(null, null, null)
+                .toLongOrNull() ?: return emptyMap()
 
             val metaFile = File(File(context.filesDir, "video_metadata"), "meta_${timestamp}.json")
-            if (!metaFile.exists()) return Triple(null, null, null)
+            if (!metaFile.exists()) return emptyMap()
+            
             val json = JSONObject(metaFile.readText())
-            val pTime = if (json.has("processingTimeMs")) json.getInt("processingTimeMs") else null
-            val lat = if (json.has("latitude")) json.getDouble("latitude") else null
-            val lon = if (json.has("longitude")) json.getDouble("longitude") else null
-            Triple(pTime, lat, lon)
+            val map = mutableMapOf<String, Any?>()
+            if (json.has("processingTimeMs")) map["processingTimeMs"] = json.getInt("processingTimeMs")
+            if (json.has("start_latitude")) map["start_latitude"] = json.getDouble("start_latitude")
+            if (json.has("start_longitude")) map["start_longitude"] = json.getDouble("start_longitude")
+            if (json.has("end_latitude")) map["end_latitude"] = json.getDouble("end_latitude")
+            if (json.has("end_longitude")) map["end_longitude"] = json.getDouble("end_longitude")
+            map
         } catch (e: Exception) {
-            Triple(null, null, null)
+            emptyMap()
         }
     }
 
@@ -190,15 +200,17 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
 
             while (cursor.moveToNext()) {
                 val displayName = cursor.getString(nameIndex) ?: continue
-                val (pTime, lat, lon) = loadVideoMetadata(displayName)
+                val meta = loadVideoMetadata(displayName)
 
                 results += DamageVideoItem(
                     uri = Uri.withAppendedPath(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cursor.getLong(idIndex).toString()),
                     displayName = displayName,
                     dateAddedSeconds = cursor.getLong(dateIndex),
-                    processingTimeMs = pTime,
-                    latitude = lat,
-                    longitude = lon
+                    processingTimeMs = meta["processingTimeMs"] as? Int,
+                    startLatitude = meta["start_latitude"] as? Double,
+                    startLongitude = meta["start_longitude"] as? Double,
+                    endLatitude = meta["end_latitude"] as? Double,
+                    endLongitude = meta["end_longitude"] as? Double
                 )
             }
         }
@@ -211,14 +223,16 @@ class VideoRepository(private val context: Context, private val backendUrl: Stri
             context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
                     val displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME))
-                    val (pTime, lat, lon) = loadVideoMetadata(displayName)
+                    val meta = loadVideoMetadata(displayName)
                     DamageVideoItem(
                         uri = uri,
                         displayName = displayName,
                         dateAddedSeconds = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)),
-                        processingTimeMs = pTime,
-                        latitude = lat,
-                        longitude = lon
+                        processingTimeMs = meta["processingTimeMs"] as? Int,
+                        startLatitude = meta["start_latitude"] as? Double,
+                        startLongitude = meta["start_longitude"] as? Double,
+                        endLatitude = meta["end_latitude"] as? Double,
+                        endLongitude = meta["end_longitude"] as? Double
                     )
                 } else null
             }
